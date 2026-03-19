@@ -79,6 +79,16 @@ jobs:
         fileName: 'libv2ray.aar'
         out-file-path: V2rayNG/app/libs/
 
+    - name: Resolve release tag
+      if: github.event_name == 'workflow_dispatch'
+      run: |
+        if [ -n "${{ github.event.inputs.release_tag }}" ]; then
+          echo "RELEASE_TAG=${{ github.event.inputs.release_tag }}" >> $GITHUB_ENV
+        else
+          echo "RELEASE_TAG=${CURRENT_TAG}" >> $GITHUB_ENV
+        fi
+        echo "Resolved release tag: ${RELEASE_TAG:-${CURRENT_TAG}}"
+
     - name: Setup Java
       uses: actions/setup-java@v5
       with:
@@ -123,9 +133,9 @@ jobs:
 
     - name: Upload to release
       uses: svenstaro/upload-release-action@v2
-      if: github.event.inputs.release_tag != ''
+      if: github.event_name == 'workflow_dispatch' && env.RELEASE_TAG != ''
       with:
         file: ${{ github.workspace }}/V2rayNG/app/build/outputs/apk/*/release/*.apk
-        tag: ${{ github.event.inputs.release_tag }}
+        tag: ${{ env.RELEASE_TAG }}
         file_glob: true
         prerelease: true
