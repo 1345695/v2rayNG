@@ -13,6 +13,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      LIBV2RAY_REPOSITORY: 1345695/AndroidLibXrayLite
 
     steps:
     - name: Checkout code
@@ -72,7 +74,7 @@ jobs:
     - name: Download libv2ray
       uses: robinraju/release-downloader@v1.12
       with:
-        repository: '2dust/AndroidLibXrayLite'
+        repository: ${{ env.LIBV2RAY_REPOSITORY }}
         tag: ${{ env.CURRENT_TAG }}
         fileName: 'libv2ray.aar'
         out-file-path: V2rayNG/app/libs/
