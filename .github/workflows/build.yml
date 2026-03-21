@@ -63,19 +63,11 @@ jobs:
       run: |
         cp -r ${{ github.workspace }}/libs ${{ github.workspace }}/V2rayNG/app
 
-    - name: Fetch AndroidLibXrayLite tag
-      run: |
-        pushd AndroidLibXrayLite
-        CURRENT_TAG=$(git describe --tags --abbrev=0)
-        echo "Current tag in this repo: $CURRENT_TAG"
-        echo "CURRENT_TAG=$CURRENT_TAG" >> $GITHUB_ENV
-        popd
-
     - name: Download libv2ray
       uses: robinraju/release-downloader@v1.12
       with:
         repository: ${{ env.LIBV2RAY_REPOSITORY }}
-        tag: ${{ env.CURRENT_TAG }}
+        latest: true
         fileName: 'libv2ray.aar'
         out-file-path: V2rayNG/app/libs/
 
@@ -85,9 +77,9 @@ jobs:
         if [ -n "${{ github.event.inputs.release_tag }}" ]; then
           echo "RELEASE_TAG=${{ github.event.inputs.release_tag }}" >> $GITHUB_ENV
         else
-          echo "RELEASE_TAG=${CURRENT_TAG}" >> $GITHUB_ENV
+          echo "RELEASE_TAG=" >> $GITHUB_ENV
         fi
-        echo "Resolved release tag: ${RELEASE_TAG:-${CURRENT_TAG}}"
+        echo "Resolved release tag: ${RELEASE_TAG:-<empty>}"
 
     - name: Setup Java
       uses: actions/setup-java@v5
