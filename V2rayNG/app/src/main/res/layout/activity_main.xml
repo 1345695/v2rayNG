@@ -94,19 +94,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="bottom|end"
+                    android:layout_marginBottom="-16dp"
                     android:layout_marginEnd="@dimen/padding_spacing_dp16">
-
-                    <com.google.android.material.floatingactionbutton.FloatingActionButton
-                        android:id="@+id/fab_locate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="bottom|end"
-                        android:layout_marginBottom="@dimen/view_height_dp120"
-                        android:clickable="true"
-                        android:contentDescription="@string/title_server"
-                        android:focusable="true"
-                        android:src="@android:drawable/ic_menu_mylocation"
-                        app:layout_anchorGravity="bottom|right|end" />
 
                     <com.google.android.material.floatingactionbutton.FloatingActionButton
                         android:id="@+id/fab"
@@ -120,6 +109,7 @@
                         android:nextFocusLeft="@+id/layout_test"
                         android:src="@drawable/ic_play_24dp"
                         app:tint="@color/colorWhite"
+                        app:useCompatPadding="true"
                         app:layout_anchorGravity="bottom|right|end" />
 
                 </FrameLayout>
