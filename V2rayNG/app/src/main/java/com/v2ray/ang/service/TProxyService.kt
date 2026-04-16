@@ -2,7 +2,7 @@ package com.v2ray.ang.service
 
 import android.content.Context
 import android.os.ParcelFileDescriptor
-import android.util.Log
+import com.v2ray.ang.util.LogUtil
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.contracts.Tun2SocksControl
 import com.v2ray.ang.handler.MmkvManager
@@ -38,32 +38,36 @@ class TProxyService(
      * Starts the tun2socks process with the appropriate parameters.
      */
     override fun startTun2Socks() {
-//        Log.i(AppConfig.TAG, "Starting HevSocks5Tunnel via JNI")
+//        LogUtil.i(AppConfig.TAG, "Starting HevSocks5Tunnel via JNI")
 
         val configContent = buildConfig()
         val configFile = File(context.filesDir, "hev-socks5-tunnel.yaml").apply {
             writeText(configContent)
         }
-//        Log.i(AppConfig.TAG, "Config file created: ${configFile.absolutePath}")
-        Log.d(AppConfig.TAG, "HevSocks5Tunnel Config content:\n$configContent")
+//        LogUtil.i(AppConfig.TAG, "Config file created: ${configFile.absolutePath}")
+        LogUtil.d(AppConfig.TAG, "HevSocks5Tunnel Config content:\n$configContent")
 
         try {
-//            Log.i(AppConfig.TAG, "TProxyStartService...")
+//            LogUtil.i(AppConfig.TAG, "TProxyStartService...")
             TProxyStartService(configFile.absolutePath, vpnInterface.fd)
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "HevSocks5Tunnel exception: ${e.message}")
+            LogUtil.e(AppConfig.TAG, "HevSocks5Tunnel exception: ${e.message}")
         }
     }
 
     private fun buildConfig(): String {
         val socksPort = SettingsManager.getSocksPort()
+        val socksUsername = SettingsManager.getSocksUsername()
+        val socksPassword = SettingsManager.getSocksPassword()
         val vpnConfig = SettingsManager.getCurrentVpnInterfaceAddressConfig()
+        val escapedSocksUsername = socksUsername?.replace("'", "''")
+        val escapedSocksPassword = socksPassword?.replace("'", "''")
         return buildString {
             appendLine("tunnel:")
             appendLine("  mtu: ${SettingsManager.getVpnMtu()}")
             appendLine("  ipv4: ${vpnConfig.ipv4Client}")
 
-            if (MmkvManager.decodeSettingsBool(AppConfig.PREF_PREFER_IPV6)) {
+            if (MmkvManager.decodeSettingsBool(AppConfig.PREF_IPV6_ENABLED)) {
                 appendLine("  ipv6: '${vpnConfig.ipv6Client}'")
             }
 
@@ -71,6 +75,10 @@ class TProxyService(
             appendLine("  port: ${socksPort}")
             appendLine("  address: ${AppConfig.LOOPBACK}")
             appendLine("  udp: 'udp'")
+            if (escapedSocksUsername != null && escapedSocksPassword != null) {
+                appendLine("  username: '${escapedSocksUsername}'")
+                appendLine("  password: '${escapedSocksPassword}'")
+            }
 
             // Read-write timeout settings
             val timeoutSetting = MmkvManager.decodeSettingsString(AppConfig.PREF_HEV_TUNNEL_RW_TIMEOUT) ?: AppConfig.HEVTUN_RW_TIMEOUT
@@ -92,10 +100,10 @@ class TProxyService(
      */
     override fun stopTun2Socks() {
         try {
-            Log.i(AppConfig.TAG, "TProxyStopService...")
+            LogUtil.i(AppConfig.TAG, "TProxyStopService...")
             TProxyStopService()
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to stop hev-socks5-tunnel", e)
+            LogUtil.e(AppConfig.TAG, "Failed to stop hev-socks5-tunnel", e)
         }
     }
 }

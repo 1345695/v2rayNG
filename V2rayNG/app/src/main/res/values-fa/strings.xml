@@ -112,6 +112,7 @@
     <string name="server_lab_bandwidth_up">افزایش پهنای باند (واحد)</string>
     <string name="server_lab_xhttp_mode">حالت XHTTP</string>
     <string name="server_lab_xhttp_extra">خام JSON XHTTP Extra، قالب: { XHTTPObject }</string>
+    <string name="server_lab_final_mask">finalMask raw JSON, format: { FinalMaskObject }</string>
     <string name="server_lab_ech_config_list">لیست کانفیگ Ech</string>
     <string name="server_lab_ech_force_query">EchForceQuery</string>
     <string name="server_lab_pinned_ca256">Certificate fingerprint (SHA-256)</string>
@@ -183,8 +184,11 @@
     <string name="title_pref_fake_dns_enabled">فعال کردن DNS جعلی</string>
     <string name="summary_pref_fake_dns_enabled">دی ان اس محلی آدرس های آیپی جعلی را بر می گرداند (سریع تر می باشد و تاخیر را کاهش می دهد اما ممکن است برای برخی از برنامه ها کار نکند)</string>
 
+    <string name="title_pref_ipv6_enabled">فعال کردن IPv6</string>
+    <string name="summary_pref_ipv6_enabled">آدرس و مسیرهای IPv6 را به رابط VPN اضافه کنید</string>
+
     <string name="title_pref_prefer_ipv6">ترجیح دادن IPV6</string>
-    <string name="summary_pref_prefer_ipv6">مسیرهای IPv6 را فعال کنید و آدرس‌های IPv6 را ترجیح دهید</string>
+    <string name="summary_pref_prefer_ipv6">هنگام بازیابی نام دامنه، آدرس‌های IPv6 را ترجیح دهید</string>
 
     <string name="title_pref_remote_dns">DNS از راه دور (اختیاری) (udp/tcp/https/quic)</string>
     <string name="summary_pref_remote_dns">DNS</string>
@@ -216,6 +220,12 @@
 
     <string name="title_pref_socks_port">پورت پروکسی محلی</string>
     <string name="summary_pref_socks_port">پورت پروکسی محلی</string>
+    <string name="title_pref_dynamic_socks_port">Enable dynamic local proxy port</string>
+    <string name="summary_pref_dynamic_socks_port">Generate a random local proxy port each time the inbound is created</string>
+    <string name="title_pref_socks_username">Local proxy username (optional)</string>
+    <string name="summary_pref_socks_username">Username</string>
+    <string name="title_pref_socks_password">Local proxy password (optional)</string>
+    <string name="summary_pref_socks_password">Password</string>
 
     <string name="title_pref_local_dns_port">پورت DNS محلی</string>
     <string name="summary_pref_local_dns_port">پورت DNS محلی</string>
@@ -241,6 +251,7 @@
     <string name="toast_tg_app_not_found">برنامه تلگرام پیدا نشد</string>
 
     <string name="title_privacy_policy">حریم خصوصی</string>
+    <string name="title_qr_code">QR code</string>
     <string name="title_about">درباره</string>
     <string name="title_source_code">کد منبع</string>
     <string name="title_oss_license">مجوز های منبع باز</string>
@@ -306,7 +317,7 @@
     <!-- RoutingSettingActivity -->
     <string name="routing_settings_domain_strategy">استراتژی دامنه</string>
     <string name="routing_settings_title">تنظیمات مسیریابی</string>
-    <string name="routing_settings_tips">با کاما (،) از هم جدا شوند، ذخیره کردن فراموش نشود</string>
+    <string name="routing_settings_tips">با کاما (,) جدا کنید. یکی از موارد domain، ip یا process را وارد کنید</string>
     <string name="routing_settings_save">ذخیره</string>
     <string name="routing_settings_delete">حذف</string>
     <string name="routing_settings_rule_title">تنظیمات قانون مسیریابی</string>

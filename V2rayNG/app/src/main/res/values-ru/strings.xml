@@ -112,6 +112,7 @@
     <string name="server_lab_bandwidth_up">Исходящая пропускная способность (допускаются: k/m/g/t)</string>
     <string name="server_lab_xhttp_mode">Режим XHTTP</string>
     <string name="server_lab_xhttp_extra">Необработанный JSON XHTTP Extra, формат: { XHTTPObject }</string>
+    <string name="server_lab_final_mask">finalMask raw JSON, format: { FinalMaskObject }</string>
     <string name="server_lab_ech_config_list">EchConfigList</string>
     <string name="server_lab_ech_force_query">EchForceQuery</string>
     <string name="server_lab_pinned_ca256">Отпечаток сертификата (SHA-256)</string>
@@ -184,8 +185,11 @@
     <string name="title_pref_fake_dns_enabled">Использовать поддельную DNS</string>
     <string name="summary_pref_fake_dns_enabled">Локальная DNS возвращает поддельные IP-адреса (быстрее, но может не работать с некоторыми приложениями)</string>
 
+    <string name="title_pref_ipv6_enabled">Включить IPv6</string>
+    <string name="summary_pref_ipv6_enabled">Добавить IPv6-адрес и маршруты в VPN-интерфейс</string>
+
     <string name="title_pref_prefer_ipv6">Предпочитать IPv6</string>
-    <string name="summary_pref_prefer_ipv6">Использовать маршрутизацию IPv6 предпочитать IPv6-адреса</string>
+    <string name="summary_pref_prefer_ipv6">Предпочитать IPv6-адреса при разрешении доменных имён</string>
 
     <string name="title_pref_remote_dns">Удалённая DNS (UDP/TCP/HTTPS/QUIC) (необязательно)</string>
     <string name="summary_pref_remote_dns">DNS</string>
@@ -217,6 +221,12 @@
 
     <string name="title_pref_socks_port">Порт локального прокси</string>
     <string name="summary_pref_socks_port">Порт локального прокси</string>
+    <string name="title_pref_dynamic_socks_port">Enable dynamic local proxy port</string>
+    <string name="summary_pref_dynamic_socks_port">Generate a random local proxy port each time the inbound is created</string>
+    <string name="title_pref_socks_username">Имя пользователя локального прокси (опционально)</string>
+    <string name="summary_pref_socks_username">Имя пользователя</string>
+    <string name="title_pref_socks_password">Пароль локального прокси (опционально)</string>
+    <string name="summary_pref_socks_password">Пароль</string>
 
     <string name="title_pref_local_dns_port">Порт локальной DNS</string>
     <string name="summary_pref_local_dns_port">Порт локальной DNS</string>
@@ -241,6 +251,7 @@
     <string name="summary_pref_tg_group">Присоединиться к группе в Telegram</string>
     <string name="toast_tg_app_not_found">Приложение Telegram не найдено</string>
     <string name="title_privacy_policy">Политика конфиденциальности</string>
+    <string name="title_qr_code">QR-код</string>
     <string name="title_about">О приложении</string>
     <string name="title_source_code">Исходный код</string>
     <string name="title_oss_license">Лицензии открытого исходного кода</string>
@@ -299,7 +310,7 @@
     <string name="title_update_subscription_no_subscription">Нет подписок</string>
     <string name="toast_server_not_found_in_group">Выбранный профиль не найден в текущей группе</string>
     <string name="toast_fragment_not_available">Фрагмент недоступен</string>
-    <string name="title_locate_selected_config">Locate the selected config</string>
+    <string name="title_locate_selected_config">Найти выбранный профиль</string>
 
     <string name="tasker_start_service">Запуск службы</string>
     <string name="tasker_setting_confirm">Подтвердить</string>
@@ -307,7 +318,7 @@
     <!-- RoutingSettingActivity -->
     <string name="routing_settings_domain_strategy">Доменная стратегия</string>
     <string name="routing_settings_title">Маршрутизация</string>
-    <string name="routing_settings_tips">Введите требуемые домены/IP через запятую</string>
+    <string name="routing_settings_tips">Разделяйте запятой (,). Укажите только одно: domain, ip или process</string>
     <string name="routing_settings_save">Сохранить</string>
     <string name="routing_settings_delete">Очистить</string>
     <string name="routing_settings_rule_title">Настройка правил маршрутизации</string>

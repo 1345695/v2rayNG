@@ -51,6 +51,8 @@ class SettingsActivity : BaseActivity() {
         private val autoUpdateCheck by lazy { findPreference<CheckBoxPreference>(AppConfig.SUBSCRIPTION_AUTO_UPDATE) }
         private val autoUpdateInterval by lazy { findPreference<EditTextPreference>(AppConfig.SUBSCRIPTION_AUTO_UPDATE_INTERVAL) }
         private val mode by lazy { findPreference<ListPreference>(AppConfig.PREF_MODE) }
+        private val socksPort by lazy { findPreference<EditTextPreference>(AppConfig.PREF_SOCKS_PORT) }
+        private val dynamicSocksPort by lazy { findPreference<CheckBoxPreference>(AppConfig.PREF_DYNAMIC_SOCKS_PORT) }
 
         private val hevTunLogLevel by lazy { findPreference<ListPreference>(AppConfig.PREF_HEV_TUNNEL_LOGLEVEL) }
         private val hevTunRwTimeout by lazy { findPreference<EditTextPreference>(AppConfig.PREF_HEV_TUNNEL_RW_TIMEOUT) }
@@ -112,15 +114,28 @@ class SettingsActivity : BaseActivity() {
                 updateHevTunSettings(newValue as Boolean)
                 true
             }
+
+            dynamicSocksPort?.setOnPreferenceChangeListener { _, newValue ->
+                updateDynamicSocksPort(newValue as Boolean)
+                true
+            }
         }
 
         private fun initPreferenceSummaries() {
             fun updateSummary(pref: androidx.preference.Preference) {
                 when (pref) {
                     is EditTextPreference -> {
-                        pref.summary = pref.text.orEmpty()
+                        if (pref.key == AppConfig.PREF_SOCKS_PASSWORD) {
+                            pref.summary = if (pref.text.isNullOrEmpty()) "" else "******"
+                        } else {
+                            pref.summary = pref.text.orEmpty()
+                        }
                         pref.setOnPreferenceChangeListener { p, newValue ->
-                            p.summary = (newValue as? String).orEmpty()
+                            if (p.key == AppConfig.PREF_SOCKS_PASSWORD) {
+                                p.summary = if ((newValue as? String).isNullOrEmpty()) "" else "******"
+                            } else {
+                                p.summary = (newValue as? String).orEmpty()
+                            }
                             true
                         }
                     }
@@ -167,6 +182,8 @@ class SettingsActivity : BaseActivity() {
 
             // Initialize auto-update interval state
             autoUpdateInterval?.isEnabled = MmkvManager.decodeSettingsBool(AppConfig.SUBSCRIPTION_AUTO_UPDATE, false)
+
+            updateDynamicSocksPort(MmkvManager.decodeSettingsBool(AppConfig.PREF_DYNAMIC_SOCKS_PORT, false))
         }
 
         private fun updateMode(value: String?) {
@@ -256,6 +273,10 @@ class SettingsActivity : BaseActivity() {
             fragmentPackets?.isEnabled = enabled
             fragmentLength?.isEnabled = enabled
             fragmentInterval?.isEnabled = enabled
+        }
+
+        private fun updateDynamicSocksPort(enabled: Boolean) {
+            socksPort?.isEnabled = !enabled
         }
 
         private fun updateHevTunSettings(enabled: Boolean) {

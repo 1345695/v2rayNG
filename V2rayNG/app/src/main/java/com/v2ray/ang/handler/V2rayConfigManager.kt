@@ -2,7 +2,7 @@ package com.v2ray.ang.handler
 
 import android.content.Context
 import android.text.TextUtils
-import android.util.Log
+import com.v2ray.ang.util.LogUtil
 import com.google.gson.JsonArray
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.dto.ConfigResult
@@ -27,6 +27,7 @@ import com.v2ray.ang.fmt.VmessFmt
 import com.v2ray.ang.fmt.WireguardFmt
 import com.v2ray.ang.util.HttpUtil
 import com.v2ray.ang.util.JsonUtil
+import com.v2ray.ang.util.PackageUidResolver
 import com.v2ray.ang.util.Utils
 
 object V2rayConfigManager {
@@ -53,7 +54,7 @@ object V2rayConfigManager {
                 getV2rayNormalConfig(context, guid, config)
             }
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to get V2ray config", e)
+            LogUtil.e(AppConfig.TAG, "Failed to get V2ray config", e)
             return ConfigResult(false)
         }
     }
@@ -77,7 +78,7 @@ object V2rayConfigManager {
                 getV2rayNormalConfig4Speedtest(context, guid, config)
             }
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to get V2ray config for speedtest", e)
+            LogUtil.e(AppConfig.TAG, "Failed to get V2ray config for speedtest", e)
             return ConfigResult(false)
         }
     }
@@ -186,7 +187,7 @@ object V2rayConfigManager {
         val address = config.server ?: return result
         if (!Utils.isPureIpAddress(address)) {
             if (!Utils.isValidUrl(address)) {
-                Log.w(AppConfig.TAG, "$address is an invalid ip or domain")
+                LogUtil.w(AppConfig.TAG, "$address is an invalid ip or domain")
                 return result
             }
         }
@@ -200,7 +201,7 @@ object V2rayConfigManager {
         getOutbounds(v2rayConfig, config) ?: return result
         getMoreOutbounds(v2rayConfig, config.subscriptionId)
 
-        getRouting(v2rayConfig)
+        getRouting(context, v2rayConfig)
 
         getFakeDns(v2rayConfig)
 
@@ -233,7 +234,7 @@ object V2rayConfigManager {
             .toList()
 
         if (validConfigs.isEmpty()) {
-            Log.w(AppConfig.TAG, "All configs are invalid")
+            LogUtil.w(AppConfig.TAG, "All configs are invalid")
             return null
         }
 
@@ -257,7 +258,7 @@ object V2rayConfigManager {
         outboundsList.addAll(v2rayConfig.outbounds)
         v2rayConfig.outbounds = ArrayList(outboundsList)
 
-        getRouting(v2rayConfig)
+        getRouting(context, v2rayConfig)
 
         getFakeDns(v2rayConfig)
 
@@ -295,7 +296,7 @@ object V2rayConfigManager {
         val address = config.server ?: return result
         if (!Utils.isPureIpAddress(address)) {
             if (!Utils.isValidUrl(address)) {
-                Log.w(AppConfig.TAG, "$address is an invalid ip or domain")
+                LogUtil.w(AppConfig.TAG, "$address is an invalid ip or domain")
                 return result
             }
         }
@@ -373,12 +374,29 @@ object V2rayConfigManager {
     private fun getInbounds(v2rayConfig: V2rayConfig): Boolean {
         try {
             val socksPort = SettingsManager.getSocksPort()
+            val socksUsername = SettingsManager.getSocksUsername()
+            val socksPassword = SettingsManager.getSocksPassword()
             val inbound1 = v2rayConfig.inbounds[0]
+            if (inbound1.settings == null) {
+                inbound1.settings = V2rayConfig.InboundBean.InSettingsBean()
+            }
 
             if (MmkvManager.decodeSettingsBool(AppConfig.PREF_PROXY_SHARING) != true) {
                 inbound1.listen = AppConfig.LOOPBACK
             }
             inbound1.port = socksPort
+            if (socksUsername != null && socksPassword != null) {
+                inbound1.settings?.auth = "password"
+                inbound1.settings?.accounts = listOf(
+                    V2rayConfig.InboundBean.InSettingsBean.SocksAccountBean(
+                        user = socksUsername,
+                        pass = socksPassword
+                    )
+                )
+            } else {
+                inbound1.settings?.auth = "noauth"
+                inbound1.settings?.accounts = null
+            }
             val fakedns = MmkvManager.decodeSettingsBool(AppConfig.PREF_FAKE_DNS_ENABLED) == true
             val sniffAllTlsAndHttp =
                 MmkvManager.decodeSettingsBool(AppConfig.PREF_SNIFFING_ENABLED, true) != false
@@ -406,7 +424,7 @@ object V2rayConfigManager {
                 inboundTun?.sniffing = inbound1.sniffing
             }
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to configure inbounds", e)
+            LogUtil.e(AppConfig.TAG, "Failed to configure inbounds", e)
             return false
         }
         return true
@@ -435,7 +453,7 @@ object V2rayConfigManager {
      * @param v2rayConfig The V2ray configuration object to be modified
      * @return true if routing configuration was successful, false otherwise
      */
-    private fun getRouting(v2rayConfig: V2rayConfig): Boolean {
+    private fun getRouting(context: Context, v2rayConfig: V2rayConfig): Boolean {
         try {
 
             v2rayConfig.routing.domainStrategy =
@@ -444,10 +462,10 @@ object V2rayConfigManager {
 
             val rulesetItems = MmkvManager.decodeRoutingRulesets()
             rulesetItems?.forEach { key ->
-                getRoutingUserRule(key, v2rayConfig)
+                getRoutingUserRule(context, key, v2rayConfig)
             }
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to configure routing", e)
+            LogUtil.e(AppConfig.TAG, "Failed to configure routing", e)
             return false
         }
         return true
@@ -459,7 +477,7 @@ object V2rayConfigManager {
      * @param item The ruleset item to add
      * @param v2rayConfig The V2ray configuration object to be modified
      */
-    private fun getRoutingUserRule(item: RulesetItem?, v2rayConfig: V2rayConfig) {
+    private fun getRoutingUserRule(context: Context, item: RulesetItem?, v2rayConfig: V2rayConfig) {
         try {
             if (item == null || !item.enabled) {
                 return
@@ -480,10 +498,22 @@ object V2rayConfigManager {
                 rule.ip = updatedIpList
             }
 
+            if (SettingsManager.canUseProcessRouting()) {
+                // Convert process package names to UIDs
+                rule.process?.let { processList ->
+                    if (processList.isNotEmpty()) {
+                        val uids = PackageUidResolver.packageNamesToUids(context, processList)
+                        rule.process = uids.ifEmpty { null }
+                    }
+                }
+            } else {
+                rule.process = null
+            }
+
             v2rayConfig.routing.rules.add(rule)
 
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to apply routing user rule", e)
+            LogUtil.e(AppConfig.TAG, "Failed to apply routing user rule", e)
         }
     }
 
@@ -572,7 +602,7 @@ object V2rayConfigManager {
                 )
             }
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to configure custom local DNS", e)
+            LogUtil.e(AppConfig.TAG, "Failed to configure custom local DNS", e)
             return false
         }
         return true
@@ -653,7 +683,7 @@ object V2rayConfigManager {
                     if (userHostsMap != null) hosts.putAll(userHostsMap)
                 }
             } catch (e: Exception) {
-                Log.e(AppConfig.TAG, "Failed to configure user DNS hosts", e)
+                LogUtil.e(AppConfig.TAG, "Failed to configure user DNS hosts", e)
             }
 
             // DNS dns
@@ -679,7 +709,7 @@ object V2rayConfigManager {
                 )
             )
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to configure DNS", e)
+            LogUtil.e(AppConfig.TAG, "Failed to configure DNS", e)
             return false
         }
         return true
@@ -710,8 +740,6 @@ object V2rayConfigManager {
         } else {
             v2rayConfig.outbounds.add(outbound)
         }
-
-        updateOutboundFragment(v2rayConfig)
         return true
     }
 
@@ -764,7 +792,7 @@ object V2rayConfigManager {
                 }
             }
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to configure more outbounds", e)
+            LogUtil.e(AppConfig.TAG, "Failed to configure more outbounds", e)
             return false
         }
 
@@ -815,7 +843,7 @@ object V2rayConfigManager {
                 } else {
                     outbound.settings?.address as List<*>
                 }
-                if (MmkvManager.decodeSettingsBool(AppConfig.PREF_PREFER_IPV6) != true) {
+                if (MmkvManager.decodeSettingsBool(AppConfig.PREF_IPV6_ENABLED) != true) {
                     localTunAddr = listOf(localTunAddr.first())
                 }
                 outbound.settings?.address = localTunAddr
@@ -845,7 +873,7 @@ object V2rayConfigManager {
 
 
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to update outbound with global settings", e)
+            LogUtil.e(AppConfig.TAG, "Failed to update outbound with global settings", e)
             return false
         }
         return true
@@ -946,7 +974,7 @@ object V2rayConfigManager {
                 )
             }
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to configure balance", e)
+            LogUtil.e(AppConfig.TAG, "Failed to configure balance", e)
         }
     }
 
@@ -955,70 +983,82 @@ object V2rayConfigManager {
      *
      * Configures packet fragmentation for TLS and REALITY protocols if enabled.
      *
-     * @param v2rayConfig The V2ray configuration object to be modified
+     * @param streamSettings The streamSettings object to be modified
      * @return true if fragment configuration was successful, false otherwise
      */
-    private fun updateOutboundFragment(v2rayConfig: V2rayConfig): Boolean {
+    private fun updateOutboundFragment(streamSettings: StreamSettingsBean): Boolean {
         try {
             if (MmkvManager.decodeSettingsBool(AppConfig.PREF_FRAGMENT_ENABLED, false) == false) {
                 return true
             }
-            if (v2rayConfig.outbounds[0].streamSettings?.security != AppConfig.TLS
-                && v2rayConfig.outbounds[0].streamSettings?.security != AppConfig.REALITY
+            if (streamSettings.security != AppConfig.TLS
+                && streamSettings.security != AppConfig.REALITY
             ) {
                 return true
             }
-
-            val fragmentOutbound =
-                OutboundBean(
-                    protocol = AppConfig.PROTOCOL_FREEDOM,
-                    tag = AppConfig.TAG_FRAGMENT,
-                    mux = null
-                )
+            if (streamSettings.sockopt?.dialerProxy.isNotNullEmpty()) {
+                return true
+            }
 
             var packets =
                 MmkvManager.decodeSettingsString(AppConfig.PREF_FRAGMENT_PACKETS) ?: "tlshello"
-            if (v2rayConfig.outbounds[0].streamSettings?.security == AppConfig.REALITY
+            if (streamSettings.security == AppConfig.REALITY
                 && packets == "tlshello"
             ) {
                 packets = "1-3"
-            } else if (v2rayConfig.outbounds[0].streamSettings?.security == AppConfig.TLS
+            } else if (streamSettings.security == AppConfig.TLS
                 && packets != "tlshello"
             ) {
                 packets = "tlshello"
             }
 
-            fragmentOutbound.settings = OutSettingsBean(
-                fragment = OutSettingsBean.FragmentBean(
+            val fragmentMask = StreamSettingsBean.FinalMaskBean.MaskBean(
+                type = "fragment",
+                settings = StreamSettingsBean.FinalMaskBean.MaskBean.MaskSettingsBean(
                     packets = packets,
                     length = MmkvManager.decodeSettingsString(AppConfig.PREF_FRAGMENT_LENGTH)
                         ?: "50-100",
-                    interval = MmkvManager.decodeSettingsString(AppConfig.PREF_FRAGMENT_INTERVAL)
+                    delay = MmkvManager.decodeSettingsString(AppConfig.PREF_FRAGMENT_INTERVAL)
                         ?: "10-20"
-                ),
-                noises = listOf(
-                    OutSettingsBean.NoiseBean(
-                        type = "rand",
-                        packet = "10-20",
-                        delay = "10-16",
+                )
+            )
+            val noiseMask = StreamSettingsBean.FinalMaskBean.MaskBean(
+                type = "noise",
+                settings = StreamSettingsBean.FinalMaskBean.MaskBean.MaskSettingsBean(
+                    noise = listOf(
+                        StreamSettingsBean.FinalMaskBean.MaskBean.MaskSettingsBean.NoiseMaskBean(
+                            rand = "10-20",
+                            delay = "10-16",
+                        )
                     )
-                ),
-            )
-            fragmentOutbound.streamSettings = StreamSettingsBean(
-                sockopt = StreamSettingsBean.SockoptBean(
-                    TcpNoDelay = true,
-                    mark = 255
                 )
             )
-            v2rayConfig.outbounds.add(fragmentOutbound)
 
-            //proxy chain
-            v2rayConfig.outbounds[0].streamSettings?.sockopt =
-                StreamSettingsBean.SockoptBean(
-                    dialerProxy = AppConfig.TAG_FRAGMENT
-                )
+            val finalMaskObj = streamSettings.finalmask?.let { existingFinalMask ->
+                JsonUtil.parseString(JsonUtil.toJson(existingFinalMask))
+            } ?: com.google.gson.JsonObject()
+
+            // finalmask.tcp / finalmask.udp are arrays; prepend mask at index 0.
+            fun prependMask(scope: String, mask: StreamSettingsBean.FinalMaskBean.MaskBean) {
+                val current = finalMaskObj.get(scope)
+                if (current != null && current.isJsonArray && current.asJsonArray.size() > 0) {
+                    return
+                }
+
+                val newArray = JsonArray()
+                newArray.add(JsonUtil.parseString(JsonUtil.toJson(mask)))
+
+                if (current != null && current.isJsonArray) {
+                    current.asJsonArray.forEach { newArray.add(it) }
+                }
+                finalMaskObj.add(scope, newArray)
+            }
+
+            prependMask("tcp", fragmentMask)
+            prependMask("udp", noiseMask)
+            streamSettings.finalmask = finalMaskObj
         } catch (e: Exception) {
-            Log.e(AppConfig.TAG, "Failed to update outbound fragment", e)
+            LogUtil.e(AppConfig.TAG, "Failed to update outbound fragment", e)
             return false
         }
         return true
@@ -1174,7 +1214,7 @@ object V2rayConfigManager {
         val authority = profileItem.authority
         val xhttpMode = profileItem.xhttpMode
         val xhttpExtra = profileItem.xhttpExtra
-
+        val finalMask = profileItem.finalMask
         var sni: String? = null
         streamSettings.network = transport.ifEmpty { NetworkType.TCP.type }
         when (streamSettings.network) {
@@ -1290,21 +1330,69 @@ object V2rayConfigManager {
                 val hysteriaSetting = StreamSettingsBean.HysteriaSettingsBean(
                     version = 2,
                     auth = profileItem.password.orEmpty(),
-                    up = profileItem.bandwidthUp?.ifEmpty { "0" }.orEmpty(),
-                    down = profileItem.bandwidthDown?.ifEmpty { "0" }.orEmpty(),
-                    udphop = null
                 )
+                val quicParams = StreamSettingsBean.FinalMaskBean.QuicParamsBean(
+                    brutalUp = profileItem.bandwidthUp?.nullIfBlank(),
+                    brutalDown = profileItem.bandwidthDown?.nullIfBlank(),
+                )
+                quicParams.congestion = if (quicParams.brutalUp != null || quicParams.brutalDown != null) "brutal" else null
                 if (profileItem.portHopping.isNotNullEmpty()) {
-                    hysteriaSetting.udphop = StreamSettingsBean.HysteriaSettingsBean.HysteriaUdpHopBean(
-                        port = profileItem.portHopping,
-                        interval = profileItem.portHoppingInterval
-                            ?.trim()
-                            ?.toIntOrNull()
-                            ?.takeIf { it >= 5 }
-                            ?: 30
+                    val rawInterval = profileItem.portHoppingInterval?.trim().nullIfBlank()
+                    val interval = if (rawInterval == null) {
+                        "30"
+                    } else {
+                        val singleValue = rawInterval.toIntOrNull()
+                        if (singleValue != null) {
+                            if (singleValue < 5) {
+                                "30"
+                            } else {
+                                rawInterval
+                            }
+                        } else {
+                            val parts = rawInterval.split('-')
+                            if (parts.size == 2) {
+                                val start = parts[0].trim().toIntOrNull()
+                                val end = parts[1].trim().toIntOrNull()
+                                if (start != null && end != null) {
+                                    val minStart = maxOf(5, start)
+                                    val minEnd = maxOf(minStart, end)
+                                        "$minStart-$minEnd"
+                                } else {
+                                    "30"
+                                }
+                            } else {
+                                "30"
+                            }
+                        }
+                    }
+                    quicParams.udpHop = StreamSettingsBean.FinalMaskBean.QuicParamsBean.UdpHopBean(
+                        ports = profileItem.portHopping,
+                        interval = interval
+                    )
+                }
+                val finalmask = StreamSettingsBean.FinalMaskBean(
+                    quicParams = quicParams
+                )
+                if (profileItem.obfsPassword.isNotNullEmpty()) {
+                    finalmask.udp = listOf(
+                        StreamSettingsBean.FinalMaskBean.MaskBean(
+                            type = "salamander",
+                            settings = StreamSettingsBean.FinalMaskBean.MaskBean.MaskSettingsBean(
+                                password = profileItem.obfsPassword.orEmpty()
+                            )
+                        )
                     )
                 }
                 streamSettings.hysteriaSettings = hysteriaSetting
+                streamSettings.finalmask = finalmask
+            }
+        }
+        finalMask?.let {
+            val parsedFinalMask = JsonUtil.parseString(finalMask)
+            if (parsedFinalMask != null) {
+                streamSettings.finalmask = parsedFinalMask
+            } else {
+                LogUtil.w("V2rayConfigManager", "Invalid finalMask JSON, keeping previously generated finalmask")
             }
         }
         return sni
@@ -1353,6 +1441,10 @@ object V2rayConfigManager {
         } else if (streamSettings.security == AppConfig.REALITY) {
             streamSettings.tlsSettings = null
             streamSettings.realitySettings = tlsSetting
+        }
+
+        if (profileItem.finalMask.isNullOrEmpty()) {
+            updateOutboundFragment(streamSettings)
         }
     }
 

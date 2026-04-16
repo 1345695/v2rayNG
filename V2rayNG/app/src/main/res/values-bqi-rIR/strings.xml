@@ -112,6 +112,7 @@
     <string name="server_lab_bandwidth_up">وا روء رئڌن پئنا باند (واهڌ)</string>
     <string name="server_lab_xhttp_mode">هالت XHTTP</string>
     <string name="server_lab_xhttp_extra">XHTTP Extra خام JSON، قالوو: { XHTTPObject }</string>
+    <string name="server_lab_final_mask">finalMask raw JSON, format: { FinalMaskObject }</string>
     <string name="server_lab_ech_config_list">نومگه کانفیگ Ech</string>
     <string name="server_lab_ech_force_query">پورس وو جۊ اجباری Ech</string>
     <string name="server_lab_pinned_ca256">Certificate fingerprint (SHA-256)</string>
@@ -185,8 +186,11 @@
     <string name="title_pref_fake_dns_enabled">ره وندن DNS جئلی</string>
     <string name="summary_pref_fake_dns_enabled">DNS مهلی نشۊویا IP جئلی ن وورگنه (زل تر، ٱما گاشڌ من یقرد ز برنومه یل کار نکونه)</string>
 
+    <string name="title_pref_ipv6_enabled">ره وندن IPv6</string>
+    <string name="summary_pref_ipv6_enabled">نشۊویا IPv6 وو تورا IPv6 ن ز رابط VPN ره وند کۊنین</string>
+
     <string name="title_pref_prefer_ipv6">ترجی داڌن IPv6</string>
-    <string name="summary_pref_prefer_ipv6">تورا IPv6 ن فعال کۊنین وو نشۊویا IPv6 ن ترجی بڌین</string>
+    <string name="summary_pref_prefer_ipv6">مون حل کردن نوم دامنه، نشۊویا IPv6 ن ترجی بڌین</string>
 
     <string name="title_pref_remote_dns">DNS ز ره دیر (اختیاری) (udp/tcp/https/quic) (اختیاری)</string>
     <string name="summary_pref_remote_dns">DNS</string>
@@ -218,6 +222,12 @@
 
     <string name="title_pref_socks_port">پورت پروکسی مهلی</string>
     <string name="summary_pref_socks_port">پورت پروکسی مهلی</string>
+    <string name="title_pref_dynamic_socks_port">Enable dynamic local proxy port</string>
+    <string name="summary_pref_dynamic_socks_port">Generate a random local proxy port each time the inbound is created</string>
+    <string name="title_pref_socks_username">Local proxy username (optional)</string>
+    <string name="summary_pref_socks_username">Username</string>
+    <string name="title_pref_socks_password">Local proxy password (optional)</string>
+    <string name="summary_pref_socks_password">Password</string>
 
     <string name="title_pref_local_dns_port">پورت DNS مهلی</string>
     <string name="summary_pref_local_dns_port">پورت DNS مهلی</string>
@@ -242,6 +252,7 @@
     <string name="summary_pref_tg_group">ٱووڌن من بونکۊ تلگرام</string>
     <string name="toast_tg_app_not_found">برنومه تلگرامن نجوست</string>
     <string name="title_privacy_policy">هریم سیخومی</string>
+    <string name="title_qr_code">QR code</string>
     <string name="title_about">زبار</string>
     <string name="title_source_code">کود بونچک</string>
     <string name="title_oss_license">موجوزا کود بونچک</string>
@@ -309,7 +320,7 @@
     <!-- RoutingSettingActivity -->
     <string name="routing_settings_domain_strategy">نشقه دامنه</string>
     <string name="routing_settings_title">سامووا تور جوستن</string>
-    <string name="routing_settings_tips">وا کاما ز یک جوڌا ابۊن (،) پسند دامنه یا آی پی</string>
+    <string name="routing_settings_tips">وا کاما ز یک جوڌا ابۊن (،)؛ یکی را وارد کنید: domain، ip یا process</string>
     <string name="routing_settings_save">زفت کردن</string>
     <string name="routing_settings_delete">روفتن</string>
     <string name="routing_settings_rule_title">سامووا قانۉݩ تور جوستن</string>

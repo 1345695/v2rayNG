@@ -2,8 +2,9 @@ package com.v2ray.ang.handler
 
 import android.content.Context
 import android.content.res.AssetManager
+import android.os.Build
 import android.text.TextUtils
-import android.util.Log
+import com.v2ray.ang.util.LogUtil
 import androidx.appcompat.app.AppCompatDelegate
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.AppConfig.ANG_PACKAGE
@@ -32,8 +33,12 @@ import java.io.File
 import java.io.FileOutputStream
 import java.util.Collections
 import java.util.Locale
+import kotlin.random.Random
 
 object SettingsManager {
+
+    @Volatile
+    private var runtimeSocksPort: Int? = null
 
     fun initApp(context: Context) {
         ensureDefaultSettings()
@@ -100,7 +105,7 @@ object SettingsManager {
             resetRoutingRulesetsCommon(rulesetList)
             return true
         } catch (e: Exception) {
-            Log.e(ANG_PACKAGE, "Failed to reset routing rulesets", e)
+            LogUtil.e(ANG_PACKAGE, "Failed to reset routing rulesets", e)
             return false
         }
     }
@@ -249,7 +254,7 @@ object SettingsManager {
     fun removeSubscriptionWithDefault(subid: String) {
 //        val subsList = decodeSubsList()
 //        if (subsList.size == 1 && subsList.first() == DEFAULT_SUBSCRIPTION_ID) {
-//            Log.i(ANG_PACKAGE,"Attempted to remove the only existing default subscription, operation ignored.")
+//            LogUtil.i(ANG_PACKAGE,"Attempted to remove the only existing default subscription, operation ignored.")
 //            return
 //        }
 
@@ -273,7 +278,30 @@ object SettingsManager {
      * @return The SOCKS port.
      */
     fun getSocksPort(): Int {
-        return Utils.parseInt(MmkvManager.decodeSettingsString(AppConfig.PREF_SOCKS_PORT), AppConfig.PORT_SOCKS.toInt())
+        val port =
+            if (IsDynamicSocksPort()) {
+                runtimeSocksPort ?: refreshRuntimeSocksPort()
+            } else {
+                Utils.parseInt(MmkvManager.decodeSettingsString(AppConfig.PREF_SOCKS_PORT), AppConfig.PORT_SOCKS.toInt())
+            }
+        return port ?: AppConfig.PORT_SOCKS.toInt()
+    }
+
+    @Synchronized
+    fun refreshRuntimeSocksPort(): Int? {
+        if (IsDynamicSocksPort()) {
+            runtimeSocksPort = generateRandomSocksPort()
+            return runtimeSocksPort
+        }
+        return null
+    }
+
+    fun getSocksUsername(): String? {
+        return MmkvManager.decodeSettingsString(AppConfig.PREF_SOCKS_USERNAME)?.trim()?.takeIf { it.isNotEmpty() }
+    }
+
+    fun getSocksPassword(): String? {
+        return MmkvManager.decodeSettingsString(AppConfig.PREF_SOCKS_PASSWORD)?.trim()?.takeIf { it.isNotEmpty() }
     }
 
     /**
@@ -282,6 +310,18 @@ object SettingsManager {
      */
     fun getHttpPort(): Int {
         return getSocksPort() + if (Utils.isXray()) 0 else 1
+    }
+
+    private fun IsDynamicSocksPort(): Boolean {
+        return MmkvManager.decodeSettingsBool(AppConfig.PREF_DYNAMIC_SOCKS_PORT, false)
+    }
+
+    private fun generateRandomSocksPort(): Int {
+        return if (Utils.isXray()) {
+            Random.nextInt(10000, 65536)
+        } else {
+            Random.nextInt(10000, 65535)
+        }
     }
 
     /**
@@ -304,10 +344,10 @@ object SettingsManager {
                             input.copyTo(output)
                         }
                     }
-                    Log.i(AppConfig.TAG, "Copied from apk assets folder to ${target.absolutePath}")
+                    LogUtil.i(AppConfig.TAG, "Copied from apk assets folder to ${target.absolutePath}")
                 }
         } catch (e: Exception) {
-            Log.e(ANG_PACKAGE, "asset copy failed", e)
+            LogUtil.e(ANG_PACKAGE, "asset copy failed", e)
         }
     }
 
@@ -431,6 +471,28 @@ object SettingsManager {
     fun isVpnMode(): Boolean {
         val mode = MmkvManager.decodeSettingsString(AppConfig.PREF_MODE)
         return mode == null || mode == VPN
+    }
+
+    /**
+     *  Check if process routing can be used.
+     */
+    fun canUseProcessRouting(): Boolean {
+        // Android 10+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            return false
+        }
+
+        // Must xray tun
+        if (isUsingHevTun()) {
+            return false
+        }
+
+        // Must have route only enabled
+        if (MmkvManager.decodeSettingsBool(AppConfig.PREF_ROUTE_ONLY_ENABLED, false) == false) {
+            return false
+        }
+
+        return true
     }
 
     /**

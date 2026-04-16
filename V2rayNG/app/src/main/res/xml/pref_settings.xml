@@ -48,6 +48,11 @@
 
     <PreferenceCategory android:title="@string/title_vpn_settings">
         <CheckBoxPreference
+            android:key="pref_ipv6_enabled"
+            android:summary="@string/summary_pref_ipv6_enabled"
+            android:title="@string/title_pref_ipv6_enabled" />
+
+        <CheckBoxPreference
             android:key="pref_prefer_ipv6"
             android:summary="@string/summary_pref_prefer_ipv6"
             android:title="@string/title_pref_prefer_ipv6" />
@@ -156,6 +161,23 @@
             android:key="pref_socks_port"
             android:summary="10808"
             android:title="@string/title_pref_socks_port" />
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="pref_dynamic_socks_port"
+            android:summary="@string/summary_pref_dynamic_socks_port"
+            android:title="@string/title_pref_dynamic_socks_port" />
+
+        <EditTextPreference
+            android:key="pref_socks_username"
+            android:summary="@string/summary_pref_socks_username"
+            android:title="@string/title_pref_socks_username" />
+
+        <EditTextPreference
+            android:inputType="textPassword"
+            android:key="pref_socks_password"
+            android:summary="@string/summary_pref_socks_password"
+            android:title="@string/title_pref_socks_password" />
 
         <EditTextPreference
             android:key="pref_remote_dns"
