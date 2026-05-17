@@ -1,10 +1,6 @@
-package com.v2ray.ang.dto
+package com.v2ray.ang.dto.entities
 
-import com.v2ray.ang.AppConfig.LOOPBACK
-import com.v2ray.ang.AppConfig.PORT_SOCKS
-import com.v2ray.ang.AppConfig.TAG_BLOCKED
-import com.v2ray.ang.AppConfig.TAG_DIRECT
-import com.v2ray.ang.AppConfig.TAG_PROXY
+import com.v2ray.ang.AppConfig
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.util.Utils
 
@@ -69,6 +65,9 @@ data class ProfileItem(
     var policyGroupType: String? = null,
     var policyGroupSubscriptionId: String? = null,
     var policyGroupFilter: String? = null,
+    var proxyChainProfiles: String? = null,
+
+    var browserDialerMode: String? = null,
 
     ) {
     companion object {
@@ -78,12 +77,12 @@ data class ProfileItem(
     }
 
     fun getAllOutboundTags(): MutableList<String> {
-        return mutableListOf(TAG_PROXY, TAG_DIRECT, TAG_BLOCKED)
+        return mutableListOf(AppConfig.TAG_PROXY, AppConfig.TAG_DIRECT, AppConfig.TAG_BLOCKED)
     }
 
     fun getServerAddressAndPort(): String {
         if (server.isNullOrEmpty() && configType == EConfigType.CUSTOM) {
-            return "$LOOPBACK:$PORT_SOCKS"
+            return "${AppConfig.LOOPBACK}:${AppConfig.PORT_SOCKS}"
         }
         return Utils.getIpv6Address(server) + ":" + serverPort
     }
@@ -129,6 +128,7 @@ data class ProfileItem(
                 && this.portHopping == obj.portHopping
                 && this.portHoppingInterval == obj.portHoppingInterval
                 && this.pinnedCA256 == obj.pinnedCA256
+                && this.proxyChainProfiles == obj.proxyChainProfiles
                 )
     }
 }

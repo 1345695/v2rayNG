@@ -1,6 +1,6 @@
 package com.v2ray.ang.fmt
 
-import com.v2ray.ang.dto.ProfileItem
+import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.dto.V2rayConfig
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.util.JsonUtil
@@ -20,7 +20,7 @@ object CustomFmt : FmtBase() {
 
         config.remarks = fullConfig?.remarks ?: System.currentTimeMillis().toString()
         config.server = outbound?.getServerAddress()
-        config.serverPort = outbound?.getServerPort().toString()
+        config.serverPort = outbound?.getServerPort()?.toString()
 
         return config
     }

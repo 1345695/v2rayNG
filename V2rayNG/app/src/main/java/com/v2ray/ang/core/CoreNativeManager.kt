@@ -1,4 +1,4 @@
-package com.v2ray.ang.handler
+package com.v2ray.ang.core
 
 import android.content.Context
 import com.v2ray.ang.AppConfig
@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Thread-safe singleton wrapper for Libv2ray native methods.
  * Provides initialization protection and unified API for V2Ray core operations.
  */
-object V2RayNativeManager {
+object CoreNativeManager {
     private val initialized = AtomicBoolean(false)
 
     /**
@@ -40,6 +40,15 @@ object V2RayNativeManager {
             }
         } else {
             LogUtil.d(AppConfig.TAG, "V2Ray core environment already initialized, skipping")
+        }
+    }
+
+    fun reconcileBrowserDialer(dialerAddr: String) {
+        try {
+            Libv2ray.reconcileBrowserDialer(dialerAddr)
+            LogUtil.i(AppConfig.TAG, "Browser dialer reconciled successfully with address: $dialerAddr")
+        } catch (e: Exception) {
+            LogUtil.e(AppConfig.TAG, "Failed to reconcile browser dialer with address: $dialerAddr", e)
         }
     }
 

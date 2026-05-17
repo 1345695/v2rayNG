@@ -1,11 +1,10 @@
 package com.v2ray.ang.service
 
 import android.content.Context
-import com.v2ray.ang.AppConfig
+import com.v2ray.ang.core.CoreConfigManager
+import com.v2ray.ang.core.CoreNativeManager
+import com.v2ray.ang.dto.RealPingEvent
 import com.v2ray.ang.handler.SettingsManager
-import com.v2ray.ang.handler.V2RayNativeManager
-import com.v2ray.ang.handler.V2rayConfigManager
-import com.v2ray.ang.util.MessageUtil
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -23,11 +22,11 @@ import java.util.concurrent.atomic.AtomicInteger
 class RealPingWorkerService(
     private val context: Context,
     private val guids: List<String>,
-    private val onFinish: (status: String) -> Unit = {}
+    private val onEvent: (RealPingEvent) -> Unit = {}
 ) {
     private val job = SupervisorJob()
-    private val cpu = Runtime.getRuntime().availableProcessors().coerceAtLeast(1)
-    private val dispatcher = Executors.newFixedThreadPool(cpu * 4).asCoroutineDispatcher()
+    private val concurrency = SettingsManager.getRealPingConcurrency()
+    private val dispatcher = Executors.newFixedThreadPool(concurrency).asCoroutineDispatcher()
     private val scope = CoroutineScope(job + dispatcher + CoroutineName("RealPingBatchWorker"))
 
     private val runningCount = AtomicInteger(0)
@@ -40,11 +39,13 @@ class RealPingWorkerService(
                 runningCount.incrementAndGet()
                 try {
                     val result = startRealPing(guid)
-                    MessageUtil.sendMsg2UI(context, AppConfig.MSG_MEASURE_CONFIG_SUCCESS, Pair(guid, result))
+                    onEvent(RealPingEvent.Result(guid, result))
+                } catch (_: Throwable) {
+                    // ignore
                 } finally {
                     val count = totalCount.decrementAndGet()
                     val left = runningCount.decrementAndGet()
-                    MessageUtil.sendMsg2UI(context, AppConfig.MSG_MEASURE_CONFIG_NOTIFY, "$left / $count")
+                    onEvent(RealPingEvent.Progress("$left / $count"))
                 }
             }
         }
@@ -52,9 +53,9 @@ class RealPingWorkerService(
         scope.launch {
             try {
                 joinAll(*jobs.toTypedArray())
-                onFinish("0")
+                onEvent(RealPingEvent.Finish("0"))
             } catch (_: CancellationException) {
-                onFinish("-1")
+                onEvent(RealPingEvent.Finish("-1"))
             } finally {
                 close()
             }
@@ -75,11 +76,10 @@ class RealPingWorkerService(
 
     private fun startRealPing(guid: String): Long {
         val retFailure = -1L
-        val configResult = V2rayConfigManager.getV2rayConfig4Speedtest(context, guid)
+        val configResult = CoreConfigManager.getV2rayConfig4Speedtest(context, guid)
         if (!configResult.status) {
             return retFailure
         }
-        return V2RayNativeManager.measureOutboundDelay(configResult.content, SettingsManager.getDelayTestUrl())
+        return CoreNativeManager.measureOutboundDelay(configResult.content, SettingsManager.getDelayTestUrl())
     }
 }
-

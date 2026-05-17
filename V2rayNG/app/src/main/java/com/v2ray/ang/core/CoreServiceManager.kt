@@ -1,4 +1,4 @@
-package com.v2ray.ang.handler
+package com.v2ray.ang.core
 
 import android.app.Service
 import android.content.BroadcastReceiver
@@ -13,11 +13,18 @@ import androidx.core.content.ContextCompat
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.contracts.ServiceControl
-import com.v2ray.ang.dto.ProfileItem
+import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.extension.toast
-import com.v2ray.ang.service.V2RayProxyOnlyService
-import com.v2ray.ang.service.V2RayVpnService
+import com.v2ray.ang.handler.MmkvManager
+import com.v2ray.ang.handler.NotificationManager
+import com.v2ray.ang.handler.SettingsManager
+import com.v2ray.ang.handler.SpeedtestManager
+import com.v2ray.ang.service.CoreProxyOnlyService
+import com.v2ray.ang.service.CoreVpnService
+import com.v2ray.ang.service.DialerNativeService
+import com.v2ray.ang.service.DialerWebviewService
+import com.v2ray.ang.service.IDialerService
 import com.v2ray.ang.util.LogUtil
 import com.v2ray.ang.util.MessageUtil
 import com.v2ray.ang.util.Utils
@@ -30,18 +37,19 @@ import libv2ray.ProcessFinder
 import java.lang.ref.SoftReference
 import java.net.InetSocketAddress
 
-object V2RayServiceManager {
+object CoreServiceManager {
 
-    private val coreController: CoreController = V2RayNativeManager.newCoreController(CoreCallback())
+    private val coreController: CoreController = CoreNativeManager.newCoreController(CoreCallback())
     private val mMsgReceive = ReceiveMessageHandler()
     private var currentConfig: ProfileItem? = null
     private var processFinder: XrayProcessFinder? = null
+    private var browserDialer: IDialerService? = null
 
     var serviceControl: SoftReference<ServiceControl>? = null
         set(value) {
             field = value
             val service = value?.get()?.getService()
-            V2RayNativeManager.initCoreEnv(service)
+            CoreNativeManager.initCoreEnv(service)
             if (service != null && processFinder == null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 processFinder = XrayProcessFinder(service)
                 coreController.registerProcessFinder(processFinder)
@@ -58,7 +66,13 @@ object V2RayServiceManager {
             context.toast(R.string.app_tile_first_use)
             return false
         }
-        startContextService(context)
+        try {
+            startContextService(context)
+        } catch (e: Exception) {
+            LogUtil.e(AppConfig.TAG, "StartCore-Manager: ${e.message}", e)
+            context.toast(e.message ?: e.javaClass.simpleName)
+            return false
+        }
         return true
     }
 
@@ -74,7 +88,12 @@ object V2RayServiceManager {
             MmkvManager.setSelectServer(guid)
         }
 
-        startContextService(context)
+        try {
+            startContextService(context)
+        } catch (e: Exception) {
+            LogUtil.e(AppConfig.TAG, "StartCore-Manager: ${e.message}", e)
+            context.toast(e.message ?: e.javaClass.simpleName)
+        }
     }
 
     /**
@@ -102,7 +121,11 @@ object V2RayServiceManager {
      * Starts the context service for V2Ray.
      * Chooses between VPN service or Proxy-only service based on user settings.
      * @param context The context from which the service is started.
+     * @throws IllegalStateException if the core is already running, no server is selected,
+     *   server config cannot be decoded, or server configuration is invalid.
+     * @throws Exception if the foreground service fails to start.
      */
+    @Throws(Exception::class)
     private fun startContextService(context: Context) {
         if (coreController.isRunning) {
             LogUtil.w(AppConfig.TAG, "StartCore-Manager: Core already running")
@@ -110,30 +133,32 @@ object V2RayServiceManager {
         }
 
         val guid = MmkvManager.getSelectServer()
-        if (guid == null) {
-            LogUtil.e(AppConfig.TAG, "StartCore-Manager: No server selected")
-            return
-        }
+            ?: run {
+                LogUtil.e(AppConfig.TAG, "StartCore-Manager: No server selected")
+                error(context.getString(R.string.app_tile_first_use))
+            }
 
         val config = MmkvManager.decodeServerConfig(guid)
-        if (config == null) {
-            LogUtil.e(AppConfig.TAG, "StartCore-Manager: Failed to decode server config")
-            return
-        }
+            ?: run {
+                LogUtil.e(AppConfig.TAG, "StartCore-Manager: Failed to decode server config")
+                error(context.getString(R.string.toast_config_file_invalid))
+            }
 
         if (config.configType != EConfigType.CUSTOM
             && config.configType != EConfigType.POLICYGROUP
+            && config.configType != EConfigType.PROXYCHAIN
             && !Utils.isValidUrl(config.server)
             && !Utils.isPureIpAddress(config.server.orEmpty())
         ) {
             LogUtil.e(AppConfig.TAG, "StartCore-Manager: Invalid server configuration")
-            return
+            error(context.getString(R.string.toast_config_file_invalid))
         }
+
         // refresh socks port when enabled dynamic socks port
         SettingsManager.refreshRuntimeSocksPort()
 
 //        val result = V2rayConfigUtil.getV2rayConfig(context, guid)
-//        if (!result.status) return
+//        if (!result.status) error(result.errorMessage.ifBlank { "Failed to get V2Ray config" })
 
         if (MmkvManager.decodeSettingsBool(AppConfig.PREF_PROXY_SHARING)) {
             context.toast(R.string.toast_warning_pref_proxysharing_short)
@@ -144,17 +169,13 @@ object V2RayServiceManager {
         val isVpnMode = SettingsManager.isVpnMode()
         val intent = if (isVpnMode) {
             LogUtil.i(AppConfig.TAG, "StartCore-Manager: Starting VPN service")
-            Intent(context.applicationContext, V2RayVpnService::class.java)
+            Intent(context.applicationContext, CoreVpnService::class.java)
         } else {
             LogUtil.i(AppConfig.TAG, "StartCore-Manager: Starting Proxy service")
-            Intent(context.applicationContext, V2RayProxyOnlyService::class.java)
+            Intent(context.applicationContext, CoreProxyOnlyService::class.java)
         }
 
-        try {
-            ContextCompat.startForegroundService(context, intent)
-        } catch (e: Exception) {
-            LogUtil.e(AppConfig.TAG, "StartCore-Manager: Failed to start service", e)
-        }
+        ContextCompat.startForegroundService(context, intent)
     }
 
     /**
@@ -174,67 +195,70 @@ object V2RayServiceManager {
             return false
         }
 
-        val guid = MmkvManager.getSelectServer()
-        if (guid == null) {
-            LogUtil.e(AppConfig.TAG, "StartCore-Manager: No server selected")
+        try {
+            doStartCoreLoop(service, vpnInterface)
+            return true
+        } catch (e: Exception) {
+            val message = e.message?.takeUnless { it.isBlank() } ?: e.javaClass.simpleName
+            LogUtil.e(AppConfig.TAG, "StartCore-Manager: $message", e)
+            MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_START_FAILURE, message)
+            NotificationManager.cancelNotification()
             return false
         }
+    }
 
-        val config = MmkvManager.decodeServerConfig(guid)
-        if (config == null) {
-            LogUtil.e(AppConfig.TAG, "StartCore-Manager: Failed to decode server config")
-            return false
-        }
+    @Throws(Exception::class)
+    private fun doStartCoreLoop(service: Service, vpnInterface: ParcelFileDescriptor?) {
+        val guid = MmkvManager.getSelectServer() ?: error("No server selected")
+        val config = MmkvManager.decodeServerConfig(guid) ?: error("Failed to decode server config")
 
         LogUtil.i(AppConfig.TAG, "StartCore-Manager: Starting core loop for ${config.remarks}")
-        val result = V2rayConfigManager.getV2rayConfig(service, guid)
+        val result = CoreConfigManager.getV2rayConfig(service, guid)
         LogUtil.d(AppConfig.TAG, result.content)
         if (!result.status) {
-            LogUtil.e(AppConfig.TAG, "StartCore-Manager: Failed to get V2Ray config")
-            return false
+            error(result.errorMessage.ifBlank { "Failed to get V2Ray config" })
         }
 
-        try {
-            val mFilter = IntentFilter(AppConfig.BROADCAST_ACTION_SERVICE)
-            mFilter.addAction(Intent.ACTION_SCREEN_ON)
-            mFilter.addAction(Intent.ACTION_SCREEN_OFF)
-            mFilter.addAction(Intent.ACTION_USER_PRESENT)
-            ContextCompat.registerReceiver(service, mMsgReceive, mFilter, Utils.receiverFlags())
-        } catch (e: Exception) {
-            LogUtil.e(AppConfig.TAG, "StartCore-Manager: Failed to register receiver", e)
-            return false
-        }
+        val mFilter = IntentFilter(AppConfig.BROADCAST_ACTION_SERVICE)
+        mFilter.addAction(Intent.ACTION_SCREEN_ON)
+        mFilter.addAction(Intent.ACTION_SCREEN_OFF)
+        mFilter.addAction(Intent.ACTION_USER_PRESENT)
+        ContextCompat.registerReceiver(service, mMsgReceive, mFilter, Utils.receiverFlags())
 
         currentConfig = config
         var tunFd = vpnInterface?.fd ?: 0
+        val dialerAddr = if (currentConfig?.browserDialerMode.isNullOrEmpty()) {
+            ""
+        } else {
+            "127.0.0.1:${Utils.findRandomFreePort()}"
+        }
         if (SettingsManager.isUsingHevTun()) {
             tunFd = 0
         }
 
-        try {
-            NotificationManager.showNotification(currentConfig)
-            coreController.startLoop(result.content, tunFd)
-        } catch (e: Exception) {
-            LogUtil.e(AppConfig.TAG, "StartCore-Manager: Failed to start core loop", e)
-            return false
+        NotificationManager.showNotification(currentConfig)
+        CoreNativeManager.reconcileBrowserDialer(dialerAddr)
+        coreController.startLoop(result.content, tunFd)
+
+        if (!coreController.isRunning) {
+            error("Core failed to start")
         }
 
-        if (coreController.isRunning == false) {
-            LogUtil.e(AppConfig.TAG, "StartCore-Manager: Core failed to start")
-            MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_START_FAILURE, "")
-            NotificationManager.cancelNotification()
-            return false
+        if (browserDialer != null) {
+            browserDialer!!.stop()
+            browserDialer = null
+        }
+        if (config.browserDialerMode == "OkHttp") {
+            browserDialer = DialerNativeService()
+            browserDialer!!.start(service, dialerAddr)
+        } else if (config.browserDialerMode == "WebView") {
+            browserDialer = DialerWebviewService()
+            browserDialer!!.start(service, dialerAddr)
         }
 
-        try {
-            MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_START_SUCCESS, "")
-            NotificationManager.startSpeedNotification(currentConfig)
-            LogUtil.i(AppConfig.TAG, "StartCore-Manager: Core started successfully")
-        } catch (e: Exception) {
-            LogUtil.e(AppConfig.TAG, "StartCore-Manager: Failed to complete startup", e)
-            return false
-        }
-        return true
+        MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_START_SUCCESS, "")
+        NotificationManager.startSpeedNotification(currentConfig)
+        LogUtil.i(AppConfig.TAG, "StartCore-Manager: Core started successfully")
     }
 
     /**
@@ -253,6 +277,13 @@ object V2RayServiceManager {
                     LogUtil.e(AppConfig.TAG, "StartCore-Manager: Failed to stop V2Ray loop", e)
                 }
             }
+        }
+
+        // Close existing browser dialer
+        CoreNativeManager.reconcileBrowserDialer("")
+        if (browserDialer != null) {
+            browserDialer!!.stop()
+            browserDialer = null
         }
 
         MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_STOP_SUCCESS, "")
@@ -401,7 +432,7 @@ object V2RayServiceManager {
                 //LogUtil.d(AppConfig.TAG, "ProcessFinder: Find $network connection from $srcIP:$srcPort to $destIP:$destPort, uid=$uid,${PackageUidResolver.uidToPackageName(uid.toString())}")
 
                 uid
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 -1L
             }
         }

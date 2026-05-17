@@ -3,9 +3,11 @@ package com.v2ray.ang.util
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import androidx.core.content.ContextCompat
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.dto.TestServiceMessage
-import com.v2ray.ang.service.V2RayTestService
+import com.v2ray.ang.service.CoreTestService
 import java.io.Serializable
 
 object MessageUtil {
@@ -42,9 +44,26 @@ object MessageUtil {
     fun sendMsg2TestService(ctx: Context, message: TestServiceMessage) {
         try {
             val intent = Intent()
-            intent.component = ComponentName(ctx, V2RayTestService::class.java)
+            intent.component = ComponentName(ctx, CoreTestService::class.java)
             intent.putExtra("content", message)
-            ctx.startService(intent)
+            when (message.key) {
+                AppConfig.MSG_MEASURE_CONFIG_START -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        ContextCompat.startForegroundService(ctx, intent)
+                    } else {
+                        ctx.startService(intent)
+                    }
+                }
+
+                AppConfig.MSG_MEASURE_CONFIG_CANCEL -> {
+                    // Do not wake up service just to cancel; stop only if it is already running.
+                    ctx.stopService(intent)
+                }
+
+                else -> {
+                    ctx.startService(intent)
+                }
+            }
         } catch (e: Exception) {
             LogUtil.e(AppConfig.TAG, "Failed to send message to test service", e)
         }
