@@ -237,7 +237,7 @@ object CoreServiceManager {
         }
 
         NotificationManager.showNotification(currentConfig)
-        CoreNativeManager.reconcileBrowserDialer(dialerAddr)
+        // CoreNativeManager.reconcileBrowserDialer(dialerAddr)
         coreController.startLoop(result.content, tunFd)
 
         if (!coreController.isRunning) {
@@ -280,7 +280,7 @@ object CoreServiceManager {
         }
 
         // Close existing browser dialer
-        CoreNativeManager.reconcileBrowserDialer("")
+        // CoreNativeManager.reconcileBrowserDialer("")
         if (browserDialer != null) {
             browserDialer!!.stop()
             browserDialer = null

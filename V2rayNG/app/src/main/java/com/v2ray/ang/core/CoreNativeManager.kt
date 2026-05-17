@@ -44,12 +44,13 @@ object CoreNativeManager {
     }
 
     fun reconcileBrowserDialer(dialerAddr: String) {
-        try {
-            Libv2ray.reconcileBrowserDialer(dialerAddr)
-            LogUtil.i(AppConfig.TAG, "Browser dialer reconciled successfully with address: $dialerAddr")
-        } catch (e: Exception) {
-            LogUtil.e(AppConfig.TAG, "Failed to reconcile browser dialer with address: $dialerAddr", e)
-        }
+        LogUtil.d(AppConfig.TAG, "Browser dialer reconcile skipped: $dialerAddr")
+        // try {
+        //     Libv2ray.reconcileBrowserDialer(dialerAddr)
+        //     LogUtil.i(AppConfig.TAG, "Browser dialer reconciled successfully with address: $dialerAddr")
+        // } catch (e: Exception) {
+        //     LogUtil.e(AppConfig.TAG, "Failed to reconcile browser dialer with address: $dialerAddr", e)
+        // }
     }
 
 
