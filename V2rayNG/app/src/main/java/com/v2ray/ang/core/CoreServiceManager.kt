@@ -28,6 +28,7 @@ import com.v2ray.ang.service.CoreVpnService
 import com.v2ray.ang.service.DialerNativeService
 import com.v2ray.ang.service.DialerWebviewService
 import com.v2ray.ang.service.IDialerService
+import com.v2ray.ang.util.JsonUtil
 import com.v2ray.ang.util.LogUtil
 import com.v2ray.ang.util.MessageUtil
 import com.v2ray.ang.util.Utils
@@ -47,6 +48,11 @@ object CoreServiceManager {
     private var currentConfig: ProfileItem? = null
     private var processFinder: XrayProcessFinder? = null
     private var browserDialer: IDialerService? = null
+    private val trafficStatsDirections = listOf(AppConfig.UPLINK, AppConfig.DOWNLINK)
+    private val defaultOutboundTrafficTags = listOf(AppConfig.TAG_PROXY, AppConfig.TAG_DIRECT)
+
+    @Volatile
+    private var runningOutboundTrafficTags: List<String> = defaultOutboundTrafficTags
 
     var serviceControl: SoftReference<ServiceControl>? = null
         set(value) {
@@ -237,6 +243,7 @@ object CoreServiceManager {
         if (!result.status) {
             error(result.errorMessage.ifBlank { "Failed to get V2Ray config" })
         }
+        updateRunningOutboundTrafficTags(result.content)
 
         val mFilter = IntentFilter(AppConfig.BROADCAST_ACTION_SERVICE)
         mFilter.addAction(Intent.ACTION_SCREEN_ON)
@@ -318,32 +325,49 @@ object CoreServiceManager {
     }
 
     /**
-     * Queries and resets all outbound traffic counters in one core call.
-     * Go side format: tag,direction,value;tag,direction,value;
+     * Queries and resets traffic counters for the running outbound tags.
      */
     fun queryAllOutboundTrafficStats(): List<OutboundTrafficStat> {
-        val payload = coreController.queryAllOutboundTrafficStats()
-
         val result = ArrayList<OutboundTrafficStat>()
 
-        payload.split(';').forEach { entry ->
-            if (entry.isBlank()) return@forEach
-
-            val parts = entry.split(',', limit = 3)
-            if (parts.size != 3) return@forEach
-
-            val value = parts[2].toLongOrNull() ?: return@forEach
-
-            result.add(
-                OutboundTrafficStat(
-                    tag = parts[0],
-                    direction = parts[1],
-                    value = value,
-                )
-            )
+        runningOutboundTrafficTags.forEach { tag ->
+            trafficStatsDirections.forEach { direction ->
+                val value = coreController.queryStats(tag, direction)
+                if (value != 0L) {
+                    result.add(
+                        OutboundTrafficStat(
+                            tag = tag,
+                            direction = direction,
+                            value = value,
+                        )
+                    )
+                }
+            }
         }
 //        LogUtil.d(AppConfig.TAG, "Queried outbound traffic stats: $result")
         return result
+    }
+
+    /**
+     * Keeps the traffic query path compatible with libv2ray AARs that expose
+     * per-counter QueryStats but not a bulk query helper.
+     */
+    private fun updateRunningOutboundTrafficTags(configContent: String) {
+        runningOutboundTrafficTags = JsonUtil.parseString(configContent)
+            ?.get("outbounds")
+            ?.takeIf { it.isJsonArray }
+            ?.asJsonArray
+            ?.mapNotNull { outbound ->
+                outbound.takeIf { it.isJsonObject }
+                    ?.asJsonObject
+                    ?.get("tag")
+                    ?.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isString }
+                    ?.asString
+                    ?.takeIf { it.isNotBlank() }
+            }
+            ?.distinct()
+            ?.ifEmpty { defaultOutboundTrafficTags }
+            ?: defaultOutboundTrafficTags
     }
 
     /**
