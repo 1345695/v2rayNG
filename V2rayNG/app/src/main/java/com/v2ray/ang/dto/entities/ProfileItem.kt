@@ -42,6 +42,7 @@ data class ProfileItem(
     var fingerPrint: String? = null,
     var insecure: Boolean? = null,
     var echConfigList: String? = null,
+    var verifyPeerCertByName: String? = null,
     var pinnedCA256: String? = null,
 
     var publicKey: String? = null,
@@ -74,10 +75,6 @@ data class ProfileItem(
         fun create(configType: EConfigType): ProfileItem {
             return ProfileItem(configType = configType)
         }
-    }
-
-    fun getAllOutboundTags(): MutableList<String> {
-        return mutableListOf(AppConfig.TAG_PROXY, AppConfig.TAG_DIRECT, AppConfig.TAG_BLOCKED)
     }
 
     fun getServerAddressAndPort(): String {

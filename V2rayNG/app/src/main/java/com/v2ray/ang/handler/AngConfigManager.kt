@@ -4,14 +4,13 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.text.TextUtils
 import com.v2ray.ang.AppConfig
-import com.v2ray.ang.AppConfig.HY2
 import com.v2ray.ang.R
 import com.v2ray.ang.core.CoreConfigManager
+import com.v2ray.ang.dto.SubscriptionUpdateResult
+import com.v2ray.ang.dto.UrlContentRequest
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.dto.entities.SubscriptionCache
 import com.v2ray.ang.dto.entities.SubscriptionItem
-import com.v2ray.ang.dto.SubscriptionUpdateResult
-import com.v2ray.ang.dto.UrlContentRequest
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.extension.isNotNullEmpty
 import com.v2ray.ang.fmt.CustomFmt
@@ -31,6 +30,21 @@ import java.net.URI
 
 object AngConfigManager {
 
+    // Parser mapping for different config types (lazy initialized)
+    private val configFmtParsers: Map<String, (String) -> ProfileItem?> by lazy {
+        mapOf(
+            EConfigType.VMESS.protocolScheme to VmessFmt::parse,
+            EConfigType.SHADOWSOCKS.protocolScheme to ShadowsocksFmt::parse,
+            EConfigType.SOCKS.protocolScheme to SocksFmt::parse,
+            AppConfig.SOCKS4 to SocksFmt::parse,
+            AppConfig.SOCKS5 to SocksFmt::parse,
+            EConfigType.TROJAN.protocolScheme to TrojanFmt::parse,
+            EConfigType.VLESS.protocolScheme to VlessFmt::parse,
+            EConfigType.WIREGUARD.protocolScheme to WireguardFmt::parse,
+            EConfigType.HYSTERIA2.protocolScheme to Hysteria2Fmt::parse,
+            AppConfig.HY2 to Hysteria2Fmt::parse
+        )
+    }
 
     /**
      * Shares the configuration to the clipboard.
@@ -220,15 +234,8 @@ object AngConfigManager {
             if (servers == null) {
                 return 0
             }
-            //  Find the currently selected server that matches the subscription ID
-            val removedSelected = if (subid.isNotBlank() && !append) {
-                MmkvManager.getSelectServer()
-                    .takeIf { it?.isNotBlank() == true }
-                    ?.let { MmkvManager.decodeServerConfig(it) }
-                    ?.takeIf { it.subscriptionId == subid }
-            } else {
-                null
-            }
+            // Find the currently selected server that belongs to the same subscription before replacement.
+            val removedSelected = getRemovedSelectedProfile(subid, append)
 
             val subItem = MmkvManager.decodeSubscription(subid)
 
@@ -274,7 +281,6 @@ object AngConfigManager {
 
         // Read serverList once
         val serverList = MmkvManager.decodeServerList(subid)
-        var needSetSelected = MmkvManager.getSelectServer().isNullOrBlank()
 
         configs.forEach { config ->
             val key = Utils.getUuid()
@@ -283,10 +289,6 @@ object AngConfigManager {
 
             if (!serverList.contains(key)) {
                 serverList.add(0, key)
-                if (needSetSelected) {
-                    MmkvManager.setSelectServer(key)
-                    needSetSelected = false
-                }
             }
             keyToProfile[key] = config
         }
@@ -309,7 +311,8 @@ object AngConfigManager {
      * @return Matched key or null
      */
     private fun findMatchedProfileKey(keyToProfile: Map<String, ProfileItem>, target: ProfileItem?): String? {
-        if (keyToProfile.isEmpty() || target == null) return null
+        if (keyToProfile.isEmpty()) return null
+        if (target == null) return null
 
         // Level 0: Full match (remarks + server + port + password)
         if (target.remarks.isNotBlank()) {
@@ -346,7 +349,20 @@ object AngConfigManager {
             isSameText(saved.server, target.server)
         }?.key?.let { return it }
 
-        return null
+        // If old selected node cannot be matched, fall back to the first imported config.
+        return keyToProfile.keys.firstOrNull()
+    }
+
+    /**
+     * Returns the currently selected profile if it belongs to the target subscription and will be replaced.
+     */
+    private fun getRemovedSelectedProfile(subid: String, append: Boolean): ProfileItem? {
+        if (subid.isBlank() || append) return null
+
+        return MmkvManager.getSelectServer()
+            .takeIf { it?.isNotBlank() == true }
+            ?.let { MmkvManager.decodeServerConfig(it) }
+            ?.takeIf { it.subscriptionId == subid }
     }
 
     /**
@@ -382,17 +398,24 @@ object AngConfigManager {
                     JsonUtil.fromJson(server, Array<Any>::class.java) ?: arrayOf()
 
                 if (serverList.isNotEmpty()) {
+                    val removedSelected = getRemovedSelectedProfile(subid, append)
                     if (!append) {
                         MmkvManager.removeServerViaSubid(subid)
                     }
                     var count = 0
+                    val keyToProfile = mutableMapOf<String, ProfileItem>()
                     for (srv in serverList.reversed()) {
                         val config = CustomFmt.parse(JsonUtil.toJson(srv)) ?: continue
                         config.subscriptionId = subid
                         config.description = generateDescription(config)
                         val key = MmkvManager.encodeServerConfig("", config)
                         MmkvManager.encodeServerRaw(key, JsonUtil.toJsonPretty(srv) ?: "")
+                        keyToProfile[key] = config
                         count += 1
+                    }
+                    if (count > 0) {
+                        val matchKey = findMatchedProfileKey(keyToProfile, removedSelected)
+                        matchKey?.let { MmkvManager.setSelectServer(it) }
                     }
                     return count
                 }
@@ -453,22 +476,8 @@ object AngConfigManager {
                 return null
             }
 
-            val config = if (str.startsWith(EConfigType.VMESS.protocolScheme)) {
-                VmessFmt.parse(str)
-            } else if (str.startsWith(EConfigType.SHADOWSOCKS.protocolScheme)) {
-                ShadowsocksFmt.parse(str)
-            } else if (str.startsWith(EConfigType.SOCKS.protocolScheme)) {
-                SocksFmt.parse(str)
-            } else if (str.startsWith(EConfigType.TROJAN.protocolScheme)) {
-                TrojanFmt.parse(str)
-            } else if (str.startsWith(EConfigType.VLESS.protocolScheme)) {
-                VlessFmt.parse(str)
-            } else if (str.startsWith(EConfigType.WIREGUARD.protocolScheme)) {
-                WireguardFmt.parse(str)
-            } else if (str.startsWith(EConfigType.HYSTERIA2.protocolScheme) || str.startsWith(HY2)) {
-                Hysteria2Fmt.parse(str)
-            } else {
-                null
+            val config = configFmtParsers.firstNotNullOfOrNull { (scheme, parser) ->
+                if (str.startsWith(scheme)) parser(str) else null
             }
 
             if (config == null) {

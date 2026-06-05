@@ -13,9 +13,12 @@ import androidx.core.content.ContextCompat
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.R
 import com.v2ray.ang.contracts.ServiceControl
+import com.v2ray.ang.dto.OutboundTrafficStat
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.enums.EConfigType
+import com.v2ray.ang.extension.isComplexType
 import com.v2ray.ang.extension.toast
+import com.v2ray.ang.extension.toastError
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.NotificationManager
 import com.v2ray.ang.handler.SettingsManager
@@ -144,9 +147,7 @@ object CoreServiceManager {
                 error(context.getString(R.string.toast_config_file_invalid))
             }
 
-        if (config.configType != EConfigType.CUSTOM
-            && config.configType != EConfigType.POLICYGROUP
-            && config.configType != EConfigType.PROXYCHAIN
+        if (!config.configType.isComplexType()
             && !Utils.isValidUrl(config.server)
             && !Utils.isPureIpAddress(config.server.orEmpty())
         ) {
@@ -159,6 +160,11 @@ object CoreServiceManager {
 
 //        val result = V2rayConfigUtil.getV2rayConfig(context, guid)
 //        if (!result.status) error(result.errorMessage.ifBlank { "Failed to get V2Ray config" })
+
+        if (config.insecure == true) {
+            context.toastError(R.string.toast_allow_insecure_deprecated)
+            context.toastError(R.string.toast_allow_insecure_deprecated)
+        }
 
         if (MmkvManager.decodeSettingsBool(AppConfig.PREF_PROXY_SHARING)) {
             context.toast(R.string.toast_warning_pref_proxysharing_short)
@@ -175,7 +181,20 @@ object CoreServiceManager {
             Intent(context.applicationContext, CoreProxyOnlyService::class.java)
         }
 
-        ContextCompat.startForegroundService(context, intent)
+        try {
+            ContextCompat.startForegroundService(context, intent)
+        } catch (e: SecurityException) {
+            LogUtil.e(AppConfig.TAG, "StartCore-Manager: Missing permission to start foreground service", e)
+            throw IllegalStateException(e.message ?: e.javaClass.simpleName, e)
+        } catch (e: RuntimeException) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+                e.javaClass.name == "android.app.ForegroundServiceStartNotAllowedException"
+            ) {
+                LogUtil.e(AppConfig.TAG, "StartCore-Manager: Foreground service start not allowed", e)
+                throw IllegalStateException(e.message ?: e.javaClass.simpleName, e)
+            }
+            throw e
+        }
     }
 
     /**
@@ -257,7 +276,7 @@ object CoreServiceManager {
         }
 
         MessageUtil.sendMsg2UI(service, AppConfig.MSG_STATE_START_SUCCESS, "")
-        NotificationManager.startSpeedNotification(currentConfig)
+        NotificationManager.startSpeedNotification()
         LogUtil.i(AppConfig.TAG, "StartCore-Manager: Core started successfully")
     }
 
@@ -299,13 +318,32 @@ object CoreServiceManager {
     }
 
     /**
-     * Queries the statistics for a given tag and link.
-     * @param tag The tag to query.
-     * @param link The link to query.
-     * @return The statistics value.
+     * Queries and resets all outbound traffic counters in one core call.
+     * Go side format: tag,direction,value;tag,direction,value;
      */
-    fun queryStats(tag: String, link: String): Long {
-        return coreController.queryStats(tag, link)
+    fun queryAllOutboundTrafficStats(): List<OutboundTrafficStat> {
+        val payload = coreController.queryAllOutboundTrafficStats()
+
+        val result = ArrayList<OutboundTrafficStat>()
+
+        payload.split(';').forEach { entry ->
+            if (entry.isBlank()) return@forEach
+
+            val parts = entry.split(',', limit = 3)
+            if (parts.size != 3) return@forEach
+
+            val value = parts[2].toLongOrNull() ?: return@forEach
+
+            result.add(
+                OutboundTrafficStat(
+                    tag = parts[0],
+                    direction = parts[1],
+                    value = value,
+                )
+            )
+        }
+//        LogUtil.d(AppConfig.TAG, "Queried outbound traffic stats: $result")
+        return result
     }
 
     /**
@@ -488,12 +526,12 @@ object CoreServiceManager {
             when (intent?.action) {
                 Intent.ACTION_SCREEN_OFF -> {
                     LogUtil.i(AppConfig.TAG, "StartCore-Manager: Screen off")
-                    NotificationManager.stopSpeedNotification(currentConfig)
+                    NotificationManager.stopSpeedNotification()
                 }
 
                 Intent.ACTION_SCREEN_ON -> {
                     LogUtil.i(AppConfig.TAG, "StartCore-Manager: Screen on")
-                    NotificationManager.startSpeedNotification(currentConfig)
+                    NotificationManager.startSpeedNotification()
                 }
             }
         }

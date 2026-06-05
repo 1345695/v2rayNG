@@ -68,7 +68,6 @@ data class V2rayConfig(
         var protocol: String,
         var settings: OutSettingsBean? = null,
         var streamSettings: StreamSettingsBean? = null,
-        val proxySettings: Any? = null,
         val sendThrough: String? = null,
         var mux: MuxBean? = MuxBean(false)
     ) {
@@ -82,7 +81,6 @@ data class V2rayConfig(
             var address: Any? = null,
             var port: Int? = null,
             /*Freedom*/
-            var domainStrategy: String? = null,
             val redirect: String? = null,
             val userLevel: Int? = null,
             /*Loopback*/
@@ -199,13 +197,12 @@ data class V2rayConfig(
 
             data class WsSettingsBean(
                 var path: String? = null,
-                var headers: HeadersBean = HeadersBean(),
+                var host: String? = null,
+                var headers: Map<String, String>? = null,
                 val maxEarlyData: Int? = null,
                 val useBrowserForwarding: Boolean? = null,
                 val acceptProxyProtocol: Boolean? = null
-            ) {
-                data class HeadersBean(var Host: String = "")
-            }
+            )
 
             data class HttpupgradeSettingsBean(
                 var path: String? = null,
@@ -256,6 +253,7 @@ data class V2rayConfig(
                 val disableSystemRoot: Boolean? = null,
                 val enableSessionResumption: Boolean? = null,
                 var echConfigList: String? = null,
+                var verifyPeerCertByName: String? = null,
                 var pinnedPeerCertSha256: String? = null,
                 // REALITY settings
                 val show: Boolean = false,

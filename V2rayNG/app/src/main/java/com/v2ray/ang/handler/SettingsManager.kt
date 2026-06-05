@@ -12,10 +12,10 @@ import com.v2ray.ang.AppConfig.GEOIP_PRIVATE
 import com.v2ray.ang.AppConfig.GEOSITE_PRIVATE
 import com.v2ray.ang.AppConfig.TAG_DIRECT
 import com.v2ray.ang.AppConfig.VPN
+import com.v2ray.ang.dto.V2rayConfig
 import com.v2ray.ang.dto.entities.ProfileItem
 import com.v2ray.ang.dto.entities.RulesetItem
 import com.v2ray.ang.dto.entities.SubscriptionItem
-import com.v2ray.ang.dto.V2rayConfig
 import com.v2ray.ang.enums.EConfigType
 import com.v2ray.ang.enums.Language
 import com.v2ray.ang.enums.RoutingType
@@ -73,7 +73,7 @@ object SettingsManager {
             return null
         }
 
-        return JsonUtil.fromJson(assets, Array<RulesetItem>::class.java)?.toMutableList()
+        return JsonUtil.fromJsonSafe(assets, Array<RulesetItem>::class.java)?.toMutableList()
     }
 
     /**
@@ -97,7 +97,7 @@ object SettingsManager {
         }
 
         try {
-            val rulesetList = JsonUtil.fromJson(content, Array<RulesetItem>::class.java)?.toMutableList()
+            val rulesetList = JsonUtil.fromJsonSafe(content, Array<RulesetItem>::class.java)?.toMutableList()
             if (rulesetList.isNullOrEmpty()) {
                 return false
             }
@@ -191,7 +191,7 @@ object SettingsManager {
         val config = decodeServerConfig(guid) ?: return false
         if (config.configType == EConfigType.CUSTOM) {
             val raw = MmkvManager.decodeServerRaw(guid) ?: return false
-            val v2rayConfig = JsonUtil.fromJson(raw, V2rayConfig::class.java)
+            val v2rayConfig = JsonUtil.fromJsonSafe(raw, V2rayConfig::class.java)
             val exist = v2rayConfig?.routing?.rules?.filter { it.outboundTag == TAG_DIRECT }?.any {
                 it.domain?.contains(GEOSITE_PRIVATE) == true || it.ip?.contains(GEOIP_PRIVATE) == true
             }
@@ -244,6 +244,20 @@ object SettingsManager {
         return serverList
             .mapNotNull { guid -> decodeServerConfig(guid) }
             .firstOrNull { it.remarks == remarks }
+    }
+
+    /**
+     * Collects non-empty profile remarks while excluding specific config types.
+     */
+    fun getProfileRemarks(excludeConfigTypes: Set<EConfigType> = setOf(EConfigType.CUSTOM)): List<String> {
+        return decodeAllServerList()
+            .asSequence()
+            .mapNotNull { guid -> decodeServerConfig(guid) }
+            .filter { profile -> profile.configType !in excludeConfigTypes }
+            .map { it.remarks.trim() }
+            .filter { it.isNotEmpty() }
+            .distinct()
+            .toList()
     }
 
     /**
@@ -571,7 +585,7 @@ object SettingsManager {
             return
         }
 
-        val guids = JsonUtil.fromJson(oldJson, Array<String>::class.java) ?: run {
+        val guids = JsonUtil.fromJsonSafe(oldJson, Array<String>::class.java) ?: run {
             MmkvManager.encodeSettings(migrationKey, true)
             return
         }

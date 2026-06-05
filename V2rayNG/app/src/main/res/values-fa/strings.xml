@@ -117,6 +117,7 @@
     <string name="server_lab_xhttp_extra">خام JSON XHTTP Extra، قالب: { XHTTPObject }</string>
     <string name="server_lab_final_mask">finalMask raw JSON, format: { FinalMaskObject }</string>
     <string name="server_lab_ech_config_list">لیست کانفیگ Ech</string>
+    <string name="server_lab_verify_peer_cert_by_name">Verify Peer Cert By Name</string>
     <string name="server_lab_pinned_ca256">Certificate fingerprint (SHA-256)</string>
 
     <!-- UserAssetActivity -->
@@ -218,9 +219,6 @@
     <string name="summary_pref_proxy_sharing_enabled">سایر دستگاه ها می توانند با استفاده از آدرس آیپی شما برای استفاده از یک پروکسی محلی متصل شوند. فقط در یک شبکه قابل اعتماد برای جلوگیری از اتصالات غیرمجاز استفاده کنید.</string>
     <string name="toast_warning_pref_proxysharing_short">اتصالات از طریق شبکه محلی را مجاز کنید، مطمئن شوید که در یک شبکه قابل اعتماد هستید.</string>
 
-    <string name="title_pref_allow_insecure">اعطای مجوز ناامن</string>
-    <string name="summary_pref_allow_insecure">هنگام استفاده از TLS، به طور پیش‌ فرض مجوز ناامن فعال است.</string>
-
     <string name="title_pref_socks_port">پورت پروکسی محلی</string>
     <string name="title_pref_enable_local_proxy">فعال‌سازی پروکسی محلی</string>
     <string name="summary_pref_enable_local_proxy">When disabled, no SOCKS proxy is available, so subscription updates and similar actions cannot use the proxy</string>
@@ -283,6 +281,7 @@
     <string name="title_logcat">گزارشات</string>
     <string name="logcat_copy">کپی</string>
     <string name="logcat_clear">پاک کردن</string>
+    <string name="logcat_share">اشتراک‌گذاری گزارش</string>
     <string name="title_service_restart">راه‌اندازی مجدد خدمات</string>
     <string name="title_del_all_config">حذف تمام کانفیگ های گروه فعلی</string>
     <string name="title_del_duplicate_config">حذف کانفیگ های تکراری گروه فعلی</string>
