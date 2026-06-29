@@ -120,6 +120,9 @@
     <string name="server_lab_verify_peer_cert_by_name">Verify Peer Cert By Name</string>
     <string name="server_lab_pinned_ca256">證書指紋 (SHA-256)</string>
     <string name="toast_allow_insecure_deprecated">警告：將在 2026.8.1 停用跳過憑證驗證 "allowInsecure" ，請盡快改用憑證指紋。到期後無法使用。 </string>
+    <string name="pinned_ca256_action_fetch">獲取並填充指紋證書</string>
+    <string name="toast_fetch_cert_sha256_success">獲取指紋證書完成</string>
+    <string name="toast_fetch_cert_sha256_failed">獲取證書指紋失敗</string>
 
     <!-- UserAssetActivity -->
     <string name="toast_asset_copy_failed">失敗，請使用檔案總管</string>
@@ -280,6 +283,13 @@
     <string name="summary_pref_use_hev_tunnel">選擇啟用後 TUN 將使用 hev-socks5-tunnel 否則使用 xray-core</string>
     <string name="title_pref_hev_tunnel_loglevel">HevTun 日誌級別</string>
     <string name="title_pref_hev_tunnel_rw_timeout">HevTun 讀寫逾時(秒) (tcp,udp 預設 300,60)</string>
+    <string name="title_mode_settings">模式設定</string>
+    <string name="title_root_mode_enabled">啟用 Root 模式 (僅限 Root 使用者)</string>
+    <string name="summary_root_mode_enabled">透過 Root 權限啟用底層透明代理。此模式將不再透過 Android 常規系統 VPN 建立連線，而是直接接管系統底層所有網路流量。開啟後，原有的常规模式、應用分流及相關 VPN 設定將直接失效。</string>
+    <string name="toast_root_required">此功能需要 Root 權限</string>
+    <string name="title_root_lan_sharing">區域網路 / 熱點網路共享 (僅限 Root 使用者)</string>
+    <string name="summary_root_lan_sharing">允許透過 Wi-Fi 熱點和 USB 共享網路連線的裝置走 VPN 代理流量</string>
+
 
     <string name="title_logcat">Logcat</string>
     <string name="logcat_copy">複製</string>
@@ -303,7 +313,6 @@
     <string name="sub_setting_pre_profile_tip">请确保設定檔别名存在并唯一</string>
     <string name="toast_invalid_update_interval">更新間隔無效，最小值為 15 分鐘。</string>
     <string name="title_sub_update">更新訂閱</string>
-    <string name="title_ping_all_server">偵測設定 Tcping</string>
     <string name="title_real_ping_all_server">偵測設定真延遲</string>
     <string name="title_user_asset_setting">資源檔案</string>
     <string name="title_sort_by_test_results">依偵測結果排序</string>
@@ -367,6 +376,7 @@
     <string name="title_pref_fragment_length">分片包長（最小-最大）</string>
     <string name="title_pref_fragment_interval">分片間隔（最小-最大）</string>
     <string name="title_pref_fragment_enabled">啟用分片（Fragment）</string>
+    <string name="title_pref_fragment_maxsplit">分片最大分割數</string>
 
     <string name="update_check_for_update">檢查更新</string>
     <string name="update_already_latest_version">当前已是最新版本</string>

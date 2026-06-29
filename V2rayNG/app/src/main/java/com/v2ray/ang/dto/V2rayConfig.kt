@@ -256,7 +256,6 @@ data class V2rayConfig(
                 var verifyPeerCertByName: String? = null,
                 var pinnedPeerCertSha256: String? = null,
                 // REALITY settings
-                val show: Boolean = false,
                 var publicKey: String? = null,
                 var shortId: String? = null,
                 var spiderX: String? = null,
@@ -296,12 +295,13 @@ data class V2rayConfig(
                 ) {
                     data class MaskSettingsBean(
                         val password: String? = null,
-                        val domain: String? = null,
+                        val header: String? = null,
+                        val value: String? = null,
                         // fragment
                         val packets: String? = null,
                         val length: String? = null,
                         val delay: String? = null,
-                        // val maxSplit: String? = null,
+                        val maxSplit: String? = null,
                         // noise
                         val reset: Int? = null,
                         val noise: List<NoiseMaskBean>? = null

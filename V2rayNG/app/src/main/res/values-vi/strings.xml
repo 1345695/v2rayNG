@@ -119,6 +119,9 @@
     <string name="server_lab_ech_config_list">EchConfigList</string>
     <string name="server_lab_verify_peer_cert_by_name">Verify Peer Cert By Name</string>
     <string name="server_lab_pinned_ca256">Certificate fingerprint (SHA-256)</string>
+    <string name="pinned_ca256_action_fetch">Fetch and fill certificate fingerprint</string>
+    <string name="toast_fetch_cert_sha256_success">Certificate fingerprint fetched successfully</string>
+    <string name="toast_fetch_cert_sha256_failed">Failed to fetch certificate fingerprint</string>
 
     <!-- UserAssetActivity -->
     <string name="toast_asset_copy_failed">Không thể sao chép tệp tin, hãy dùng trình quản lý tệp!</string>
@@ -303,7 +306,6 @@
     <string name="sub_setting_pre_profile_tip">The configuration remarks exists and is unique</string>
     <string name="toast_invalid_update_interval">Khoảng thời gian cập nhật không hợp lệ. Giá trị tối thiểu là 15 phút.</string>
     <string name="title_sub_update">Cập nhật các gói đăng ký</string>
-    <string name="title_ping_all_server">Ping tất cả máy chủ</string>
     <string name="title_real_ping_all_server">Kiểm tra HTTP tất cả máy chủ</string>
     <string name="title_user_asset_setting">Asset files</string>
     <string name="title_sort_by_test_results">Sắp xếp lại theo lần kiểm tra cuối cùng</string>
@@ -367,6 +369,7 @@
     <string name="title_pref_fragment_length">Fragment Length (min-max)</string>
     <string name="title_pref_fragment_interval">Fragment Interval (min-max)</string>
     <string name="title_pref_fragment_enabled">Enable Fragment</string>
+    <string name="title_pref_fragment_maxsplit">Fragment Max Split</string>
 
     <string name="update_check_for_update">Check for update</string>
     <string name="update_already_latest_version">Already on the latest version</string>

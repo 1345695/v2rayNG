@@ -123,6 +123,9 @@
     <string name="server_lab_browser_dialer">Enable Browser Dialer</string>
     <string name="server_lab_browser_dialer_tip">Only supports xhttp (packet-up) and ws outbound; TLS-related settings may be ignored or conflict</string>
     <string name="toast_allow_insecure_deprecated">WARNING: Skipping certificate verification "allowInsecure" will be disabled in August 2026. Please use certificate fingerprints as soon as possible. This feature will not be available after its expiration.</string>
+    <string name="pinned_ca256_action_fetch">Fetch and fill certificate fingerprint</string>
+    <string name="toast_fetch_cert_sha256_success">Certificate fingerprint fetched successfully</string>
+    <string name="toast_fetch_cert_sha256_failed">Failed to fetch certificate fingerprint</string>
 
     <!-- UserAssetActivity -->
     <string name="toast_asset_copy_failed">File copy failed, please use File Manager</string>
@@ -288,6 +291,12 @@
     <string name="summary_pref_use_hev_tunnel">When enabled, TUN will use hev-socks5-tunnel; otherwise, it will use xray-core.</string>
     <string name="title_pref_hev_tunnel_loglevel">Hev Tun Log Level</string>
     <string name="title_pref_hev_tunnel_rw_timeout">Hev Tun read/write timeout (seconds) (tcp,udp default 300,60)</string>
+    <string name="title_mode_settings">Mode Settings</string>
+    <string name="title_root_mode_enabled">Root mode enabled (Root Users)</string>
+    <string name="summary_root_mode_enabled">Enable low-level transparent proxying via root privileges. This mode bypasses the standard Android system VPN to directly take over all underlying network traffic. Once enabled, the original regular mode, per-app routing, and related VPN settings will become completely invalid.</string>
+    <string name="toast_root_required">Root access is required for this feature</string>
+    <string name="title_root_lan_sharing">LAN / tethering sharing (Root Users)</string>
+    <string name="summary_root_lan_sharing">Route Wi-Fi hotspot and USB-tethered devices through the VPN</string>
 
     <string name="title_logcat">Logcat</string>
     <string name="logcat_copy">Copy</string>
@@ -311,7 +320,6 @@
     <string name="sub_setting_pre_profile_tip">The config remarks exist and are unique</string>
     <string name="toast_invalid_update_interval">Invalid update interval. Minimum is 15 minutes.</string>
     <string name="title_sub_update">Update subscription</string>
-    <string name="title_ping_all_server">Tcping config</string>
     <string name="title_real_ping_all_server">Real delay config</string>
     <string name="title_user_asset_setting">Asset files</string>
     <string name="title_sort_by_test_results">Sorting by test results</string>
@@ -374,6 +382,7 @@
     <string name="title_pref_fragment_length">Fragment Length (min-max)</string>
     <string name="title_pref_fragment_interval">Fragment Interval (min-max)</string>
     <string name="title_pref_fragment_enabled">Enable Fragment</string>
+    <string name="title_pref_fragment_maxsplit">Fragment Max Split</string>
 
     <string name="update_check_for_update">Check for update</string>
     <string name="update_already_latest_version">Already on the latest version</string>

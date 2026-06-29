@@ -119,6 +119,9 @@
     <string name="server_lab_ech_config_list">EchConfigList</string>
     <string name="server_lab_verify_peer_cert_by_name">Verify Peer Cert By Name</string>
     <string name="server_lab_pinned_ca256">Certificate fingerprint (SHA-256)</string>
+    <string name="pinned_ca256_action_fetch">Fetch and fill certificate fingerprint</string>
+    <string name="toast_fetch_cert_sha256_success">Certificate fingerprint fetched successfully</string>
+    <string name="toast_fetch_cert_sha256_failed">Failed to fetch certificate fingerprint</string>
 
     <!-- UserAssetActivity -->
     <string name="toast_asset_copy_failed">ফাইল কপি ব্যর্থ, অনুগ্রহ করে ফাইল ম্যানেজার ব্যবহার করুন</string>
@@ -303,7 +306,6 @@
     <string name="sub_setting_pre_profile_tip">The configuration remarks exists and is unique</string>
     <string name="toast_invalid_update_interval">আপডেটের বিরতি সঠিক নয়। সর্বনিম্ন ১৫ মিনিট।</string>
     <string name="title_sub_update">সাবস্ক্রিপশন আপডেট</string>
-    <string name="title_ping_all_server">সব কনফিগারেশন TCPing</string>
     <string name="title_real_ping_all_server">সব কনফিগারেশন প্রকৃত বিলম্ব</string>
     <string name="title_user_asset_setting">Asset files</string>
     <string name="title_sort_by_test_results">টেস্ট ফলাফল দ্বারা সাজানো</string>
@@ -365,6 +367,7 @@
     <string name="title_pref_fragment_length">ফ্র্যাগমেন্ট দৈর্ঘ্য (ন্যূনতম-সর্বাধিক)</string>
     <string name="title_pref_fragment_interval">ফ্র্যাগমেন্ট ইন্টারভ্যাল (ন্যূনতম-সর্বাধিক)</string>
     <string name="title_pref_fragment_enabled">ফ্র্যাগমেন্ট সক্রিয় করুন</string>
+    <string name="title_pref_fragment_maxsplit">ফ্র্যাগমেন্ট ম্যাক্স স্প্লিট</string>
 
     <string name="update_check_for_update">Check for update</string>
     <string name="update_already_latest_version">Already on the latest version</string>

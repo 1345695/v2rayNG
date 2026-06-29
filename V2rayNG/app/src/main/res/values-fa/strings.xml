@@ -119,6 +119,9 @@
     <string name="server_lab_ech_config_list">لیست کانفیگ Ech</string>
     <string name="server_lab_verify_peer_cert_by_name">Verify Peer Cert By Name</string>
     <string name="server_lab_pinned_ca256">Certificate fingerprint (SHA-256)</string>
+    <string name="pinned_ca256_action_fetch">Fetch and fill certificate fingerprint</string>
+    <string name="toast_fetch_cert_sha256_success">Certificate fingerprint fetched successfully</string>
+    <string name="toast_fetch_cert_sha256_failed">Failed to fetch certificate fingerprint</string>
 
     <!-- UserAssetActivity -->
     <string name="toast_asset_copy_failed">کپی فایل انجام نشد، لطفا از برنامه مدیریت فایل استفاده کنید</string>
@@ -300,7 +303,6 @@
     <string name="sub_setting_pre_profile_tip">لطفاً مطمئن شوید که نام مستعار وجود دارد و منحصر به فرد است</string>
     <string name="toast_invalid_update_interval">بازه بروزرسانی نامعتبر است. حداقل مقدار 15 دقیقه است.</string>
     <string name="title_sub_update">به‌روزرسانی گروه فعلی اشتراک</string>
-    <string name="title_ping_all_server">TCPING کانفیگ های گروه فعلی</string>
     <string name="title_real_ping_all_server">تاخیر واقعی کانفیگ های گروه فعلی</string>
     <string name="title_user_asset_setting">فایل های منبع جغرافیایی</string>
     <string name="title_sort_by_test_results">مرتب‌ سازی بر اساس نتایج آزمایش</string>
@@ -362,6 +364,7 @@
     <string name="title_pref_fragment_length">طول بسته های فرگمنت (حداقل-حداکثر)</string>
     <string name="title_pref_fragment_interval">فاصله بین بسته های فرگمنت (حداقل-حداکثر)</string>
     <string name="title_pref_fragment_enabled">فعال کردن فرگمنت</string>
+    <string name="title_pref_fragment_maxsplit">حداکثر تقسیم فرگمنت</string>
 
     <string name="update_check_for_update">بررسی به روز رسانی</string>
     <string name="update_already_latest_version">در حال حاضر آخرین نسخه نصب شده است</string>

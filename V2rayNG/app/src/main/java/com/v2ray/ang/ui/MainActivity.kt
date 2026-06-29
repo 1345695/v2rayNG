@@ -76,23 +76,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         binding.viewPager.isUserInputEnabled = true
 
         // setup navigation drawer
-        val toggle = ActionBarDrawerToggle(
-            this, binding.drawerLayout, binding.toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close
-        )
-        binding.drawerLayout.addDrawerListener(toggle)
-        toggle.syncState()
-        binding.navView.setNavigationItemSelectedListener(this)
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                    binding.drawerLayout.closeDrawer(GravityCompat.START)
-                } else {
-                    isEnabled = false
-                    onBackPressedDispatcher.onBackPressed()
-                    isEnabled = true
-                }
-            }
-        })
+        setupNavigationDrawer()
 
         binding.fab.setOnClickListener { handleFabAction() }
         binding.layoutTest.setOnClickListener { handleLayoutTestClick() }
@@ -104,6 +88,31 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
 
         checkAndRequestPermission(PermissionType.POST_NOTIFICATIONS) {
         }
+    }
+
+    private fun setupNavigationDrawer() {
+        val toggle = ActionBarDrawerToggle(
+            this,
+            binding.drawerLayout,
+            binding.toolbar,
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close
+        )
+        binding.drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+        binding.navView.setNavigationItemSelectedListener(this)
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    binding.drawerLayout.closeDrawer(GravityCompat.START)
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                    isEnabled = true
+                }
+            }
+        })
     }
 
     private fun setupViewModel() {
@@ -131,6 +140,26 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
         binding.viewPager.setCurrentItem(targetIndex, false)
 
         binding.tabGroup.isVisible = groups.size > 1
+        refreshGroupTabTitles(true)
+    }
+
+    fun refreshGroupTabTitles(refreshAll: Boolean = false) {
+        val groupsToRefresh = if (refreshAll || mainViewModel.subscriptionId.isEmpty()) {
+            groupPagerAdapter.groups
+        } else {
+            groupPagerAdapter.groups.filter { it.id == mainViewModel.subscriptionId }
+        }
+
+        groupsToRefresh.forEach { group ->
+            if (group.id.isEmpty()) {
+                return@forEach
+            }
+            val tabIndex = groupPagerAdapter.groups.indexOfFirst { it.id == group.id }
+            if (tabIndex >= 0) {
+                val count = MmkvManager.decodeServerList(group.id).size
+                binding.tabGroup.getTabAt(tabIndex)?.text = "${group.remarks} ($count)"
+            }
+        }
     }
 
     private fun handleFabAction() {
@@ -304,12 +333,6 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
             true
         }
 
-        R.id.ping_all -> {
-            toast(getString(R.string.connection_test_testing_count, mainViewModel.serversCache.count()))
-            mainViewModel.testAllTcping()
-            true
-        }
-
         R.id.real_ping_all -> {
             toast(getString(R.string.connection_test_testing_count, mainViewModel.serversCache.count()))
             mainViewModel.testAllRealPing()
@@ -416,6 +439,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
                         count > 0 -> {
                             toast(getString(R.string.title_import_config_count, count))
                             mainViewModel.reloadServerList()
+                            refreshGroupTabTitles()
                         }
 
                         countSub > 0 -> setupGroupTab()
@@ -471,6 +495,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
                 }
                 if (result.configCount > 0) {
                     mainViewModel.reloadServerList()
+                    refreshGroupTabTitles()
                 }
                 hideLoading()
             }
@@ -500,6 +525,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
                     val ret = mainViewModel.removeAllServer()
                     launch(Dispatchers.Main) {
                         mainViewModel.reloadServerList()
+                        refreshGroupTabTitles()
                         toast(getString(R.string.title_del_config_count, ret))
                         hideLoading()
                     }
@@ -519,6 +545,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
                     val ret = mainViewModel.removeDuplicateServer()
                     launch(Dispatchers.Main) {
                         mainViewModel.reloadServerList()
+                        refreshGroupTabTitles()
                         toast(getString(R.string.title_del_duplicate_config_count, ret))
                         hideLoading()
                     }
@@ -538,6 +565,7 @@ class MainActivity : HelperBaseActivity(), NavigationView.OnNavigationItemSelect
                     val ret = mainViewModel.removeInvalidServer()
                     launch(Dispatchers.Main) {
                         mainViewModel.reloadServerList()
+                        refreshGroupTabTitles()
                         toast(getString(R.string.title_del_config_count, ret))
                         hideLoading()
                     }
