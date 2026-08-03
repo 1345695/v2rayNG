@@ -250,7 +250,7 @@
     <string name="summary_pref_append_http_proxy">浏览器 / 一些支持的应用 将直接使用 HTTP 代理, 而不经过虚拟网卡设备 (Android 10+)</string>
 
     <string name="title_pref_double_column_display">启用双列显示</string>
-    <string name="summary_pref_double_column_display">配置列表以双列显示，允许在屏幕上显示更多内容。需要重启应用生效。</string>
+    <string name="summary_pref_double_column_display">配置列表以双列显示，允许在屏幕上显示更多内容。</string>
 
     <string name="title_pref_group_all_display">启用显示所有组</string>
     <string name="summary_pref_group_all_display">添加一个额外的“所有选项卡”页面</string>
@@ -305,6 +305,7 @@
     <string name="sub_setting_remarks">备注</string>
     <string name="sub_setting_url">可选地址 (url)</string>
     <string name="sub_setting_user_agent">User Agent</string>
+    <string name="sub_setting_request_headers">请求头（JSON 格式）</string>
     <string name="sub_setting_filter">别名正则过滤</string>
     <string name="sub_setting_enable">启用更新</string>
     <string name="sub_auto_update">启用自动更新</string>
@@ -320,6 +321,7 @@
     <string name="title_filter_config">过滤配置</string>
     <string name="filter_config_all">所有</string>
     <string name="title_del_duplicate_config_count">删除 %d 个重复配置</string>
+    <string name="summary_scan_qrcode">点击屏幕打开相机扫描</string>
 
     <string name="title_del_config_count">删除 %d 个配置</string>
     <string name="title_import_config_count">导入 %d 个配置</string>
@@ -351,6 +353,7 @@
     <string name="routing_settings_domain">domain</string>
     <string name="routing_settings_ip">ip</string>
     <string name="routing_settings_process">process (包名 — 仅在使用 Xray 的 TUN、开启 routeOnly 且 Android 10+ 时可用)</string>
+    <string name="routing_settings_process_select">选择包名</string>
     <string name="routing_settings_port">port</string>
     <string name="routing_settings_protocol">protocol</string>
     <string name="routing_settings_protocol_tip">[http,tls,bittorrent]</string>
@@ -379,6 +382,14 @@
     <string name="title_pref_fragment_interval">分片间隔（最小 - 最大）</string>
     <string name="title_pref_fragment_enabled">启用分片（Fragment）</string>
     <string name="title_pref_fragment_maxsplit">分片最大分割数</string>
+    <string name="title_observatory_settings">连接观测设置</string>
+    <string name="title_pref_observatory_least_ping_interval">leastPing 探测间隔</string>
+    <string name="title_pref_observatory_least_load_interval">leastLoad 探测间隔</string>
+    <string name="title_pref_observatory_least_load_method">leastLoad HTTP 方法</string>
+    <string name="title_pref_observatory_least_load_sampling">leastLoad 采样数量</string>
+    <string name="title_pref_observatory_least_load_timeout">leastLoad 探测超时</string>
+    <string name="toast_invalid_observatory_duration">时间格式无效。请使用类似 3m 或 30s 的值。</string>
+    <string name="toast_invalid_observatory_sampling">采样数量无效。请使用正数。</string>
 
     <string name="update_check_for_update">检查更新</string>
     <string name="update_already_latest_version">目前已是最新版本</string>

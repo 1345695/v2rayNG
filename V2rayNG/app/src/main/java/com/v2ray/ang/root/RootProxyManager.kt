@@ -5,6 +5,9 @@ import android.os.Process
 import com.v2ray.ang.AppConfig
 import com.v2ray.ang.handler.MmkvManager
 import com.v2ray.ang.handler.SettingsManager
+import com.v2ray.ang.root.RootProxyManager.TABLE
+import com.v2ray.ang.root.RootProxyManager.TUN
+import com.v2ray.ang.root.RootProxyManager.teardown
 import com.v2ray.ang.util.LogUtil
 import com.v2ray.ang.util.PackageUidResolver
 import com.v2ray.ang.util.Utils
@@ -106,6 +109,8 @@ object RootProxyManager {
             return null
         }
         val appUid = context.applicationInfo.uid
+        val socksUsername = SettingsManager.getSocksUsername()
+        val socksPassword = SettingsManager.getSocksPassword()
         val port = SettingsManager.getSocksPort()
         val runDir = File(context.filesDir, AppConfig.ROOT_RUNTIME_DIR).apply { mkdirs() }
         val pidFile = File(runDir, "tun2socks.pid").absolutePath
@@ -142,7 +147,7 @@ object RootProxyManager {
             // (loopback, already RETURNed by the 127.0.0.0/8 bypass) and the core's real outbound
             // runs as the app uid (RETURNed by the uid-owner rule), so traffic can't loop.
             appendLine("cat > '$cfgFile' <<'HEVCFG'")
-            append(buildHevConfig(port, ipv6))
+            append(buildHevConfig(socksUsername = socksUsername, socksPassword = socksPassword, socksPort = port, ipv6 = ipv6))
             appendLine("HEVCFG")
             appendLine("nohup \"\$BIN\" '$cfgFile' >'$logFile' 2>&1 &")
             appendLine("T2S_PID=\$!")
@@ -192,7 +197,7 @@ object RootProxyManager {
      * tun address when IPv6 is enabled; whether v6 actually flows in is decided separately by
      * the v6 route into [TABLE].
      */
-    private fun buildHevConfig(socksPort: Int, ipv6: Boolean): String {
+    private fun buildHevConfig(socksUsername: String?, socksPassword: String?, socksPort: Int, ipv6: Boolean): String {
         val v4 = AppConfig.ROOT_TUN_ADDR_V4.substringBefore("/")
         val v6 = AppConfig.ROOT_TUN_ADDR_V6.substringBefore("/")
         return buildString {
@@ -206,6 +211,10 @@ object RootProxyManager {
             appendLine("  port: $socksPort")
             appendLine("  address: '${AppConfig.LOOPBACK}'")
             appendLine("  udp: 'udp'")
+            if (socksUsername != null && socksPassword != null) {
+                appendLine("  username: '$socksUsername'")
+                appendLine("  password: '$socksPassword'")
+            }
             appendLine("  tcp-fastopen: true")
         }
     }
