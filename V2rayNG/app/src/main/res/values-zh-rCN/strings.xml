@@ -39,8 +39,16 @@
     <string name="menu_item_import_config_manually_trojan">添加 [Trojan]</string>
     <string name="menu_item_import_config_manually_wireguard">添加 [Wireguard]</string>
     <string name="menu_item_import_config_manually_hysteria2">添加 [Hysteria2]</string>
-    <string name="del_config_comfirm">确认删除？</string>
-    <string name="del_invalid_config_comfirm">删除前请先测试！确认删除？</string>
+    <string name="confirm_delete_visible_profiles">确定要删除当前显示的所有配置吗？</string>
+    <string name="confirm_delete_duplicate_profiles">确定要删除当前显示的所有重复配置吗？</string>
+    <string name="confirm_delete_invalid_profiles">请先测试配置。确定要删除当前显示的所有无效配置吗？</string>
+    <string name="confirm_delete_profile">确定要删除此配置吗？</string>
+    <string name="confirm_delete_policy_group">确定要删除此策略组吗？</string>
+    <string name="confirm_delete_proxy_chain_member">确定要删除此代理链成员吗？</string>
+    <string name="confirm_delete_routing_rule">确定要删除此路由规则吗？</string>
+    <string name="confirm_delete_subscription_group">确定要删除此订阅组吗？</string>
+    <string name="confirm_delete_asset_file">确定要删除资源文件“%1$s”吗？</string>
+    <string name="confirm_delete_asset_source">确定要删除此资源来源吗？</string>
     <string name="server_lab_remarks">别名 (remarks)</string>
     <string name="server_lab_address">地址 (address)</string>
     <string name="server_lab_port">端口 (port)</string>
@@ -121,7 +129,7 @@
     <string name="server_lab_pinned_ca256">证书指纹 (SHA-256)</string>
     <string name="server_lab_browser_dialer">启用浏览器转发</string>
     <string name="server_lab_browser_dialer_tip">仅支持 xhttp (packet-up) 和 ws。与优选域名冲突，utls, alpn, ech 等 TLS 设置将被忽略</string>
-    <string name="toast_allow_insecure_deprecated">警告：将在 2026.8.1 移除跳过证书验证 "allowInsecure" ，请尽快改用证书指纹或修改服务端。否则到期后会无法使用。 </string>
+    <string name="toast_allow_insecure_deprecated">当前节点使用未加密连接，您的通信可能会被威权政府掌控的网络中间设施直接查看\n为了安全，此类节点无法通过 26.2.6+ 版本的 Xray 核心连接\n如果是自建节点请启用 TLS 等安全加密，或固定证书 pinnedCA256\n如果机场节点请联系服务商完成技术升级，如服务商拒绝配合，建议更换更重视用户安全的服务商\n更多的信息，请访问 https://github.com/2dust/v2rayN/discussions/9460</string>
     <string name="pinned_ca256_action_fetch">获取并填充指纹证书</string>
     <string name="toast_fetch_cert_sha256_success">获取指纹证书完成</string>
     <string name="toast_fetch_cert_sha256_failed">获取证书指纹失败</string>
@@ -161,6 +169,9 @@
     <string name="title_pref_is_booted">开机时自动连接</string>
     <string name="summary_pref_is_booted">开机时自动连接选择的服务器，可能会不成功</string>
 
+    <string name="subscription_updater_job_tips">任务将在后台运行，在通知中会显示进度信息</string>
+    <string name="title_pref_auto_test_after_update_subscription">更新订阅后自动测试</string>
+    <string name="summary_pref_auto_test_after_update_subscription">自动测试需要比较长的时间，开启后任务将在后台运行；不开启则在当前页面运行</string>
     <string name="title_pref_auto_remove_invalid_after_test">测试后自动删除无效配置</string>
     <string name="summary_pref_auto_remove_invalid_after_test">测试结果可能不准确且已删除的配置无法恢复</string>
     <string name="title_pref_auto_sort_after_test">测试后自动排序</string>
@@ -243,8 +254,6 @@
     <string name="title_pref_confirm_remove">删除配置确认</string>
     <string name="summary_pref_confirm_remove">删除配置是否需要用户二次确认</string>
 
-    <string name="title_pref_start_scan_immediate">立即启动扫码</string>
-    <string name="summary_pref_start_scan_immediate">启动时立即打开相机扫描，否则可在工具栏选择扫码或选照片</string>
 
     <string name="title_pref_append_http_proxy">追加 HTTP 代理至 VPN</string>
     <string name="summary_pref_append_http_proxy">浏览器 / 一些支持的应用 将直接使用 HTTP 代理, 而不经过虚拟网卡设备 (Android 10+)</string>
@@ -315,6 +324,7 @@
     <string name="sub_setting_pre_profile_tip">请确保配置别名存在并唯一</string>
     <string name="toast_invalid_update_interval">更新间隔无效，最小值为 15 分钟。</string>
     <string name="title_sub_update">更新订阅</string>
+    <string name="title_ping_all_server">测试配置 Tcping</string>
     <string name="title_real_ping_all_server">测试配置真连接</string>
     <string name="title_user_asset_setting">资源文件</string>
     <string name="title_sort_by_test_results">按测试结果排序</string>
@@ -358,7 +368,6 @@
     <string name="routing_settings_protocol">protocol</string>
     <string name="routing_settings_protocol_tip">[http,tls,bittorrent]</string>
     <string name="routing_settings_network">network</string>
-    <string name="routing_settings_network_tip">[udp|tcp]</string>
     <string name="routing_settings_outbound_tag">outboundTag</string>
 
     <string name="connection_test_pending">"检查网络连接"</string>
@@ -401,6 +410,8 @@
     <string name="title_policy_group_type">策略组类型</string>
     <string name="title_policy_group_subscription_id">来自订阅分组</string>
     <string name="title_policy_group_subscription_filter">别名正则过滤</string>
+    <string name="title_policy_group_test_outbounds">测试出站</string>
+    <string name="title_policy_group_fallback">备用出站（可选）</string>
     <string name="server_proxy_chain_members">代理链成员</string>
     <string name="server_proxy_chain_pick_members">点此选择成员</string>
     <string name="server_proxy_chain_member_unselected">请选择成员</string>
@@ -420,19 +431,12 @@
     <string name="title_webdav_pass">密码</string>
     <string name="title_webdav_remote_path">远程文件夹名（可选）</string>
 
-    <string-array name="share_method">
-        <item>二维码</item>
-        <item>导出至剪贴板</item>
-        <item>导出完整配置至剪贴板</item>
-    </string-array>
-
-    <string-array name="share_method_more">
-        <item>二维码</item>
-        <item>导出至剪贴板</item>
-        <item>导出完整配置至剪贴板</item>
-        <item>编辑</item>
-        <item>删除</item>
-    </string-array>
+    <string name="share_method_qrcode">二维码</string>
+    <string name="share_method_clipboard">导出至剪贴板</string>
+    <string name="share_method_full_content">导出完整配置至剪贴板</string>
+    <string name="action_edit">编辑</string>
+    <string name="action_delete">删除</string>
+    <string name="action_close">关闭</string>
 
     <string-array name="share_sub_method">
         <item>二维码</item>

@@ -15,14 +15,11 @@ object SettingsChangeManager {
     // Keys that affect only UI behavior and do not require core service restart.
     private val uiOnlyKeys = setOf(
         AppConfig.PREF_CONFIRM_REMOVE,
-        AppConfig.PREF_START_SCAN_IMMEDIATE,
         AppConfig.PREF_DOUBLE_COLUMN_DISPLAY,
         AppConfig.PREF_GROUP_ALL_DISPLAY,
         AppConfig.PREF_LANGUAGE,
         AppConfig.PREF_UI_MODE_NIGHT,
         AppConfig.PREF_IS_BOOTED,
-        AppConfig.PREF_AUTO_REMOVE_INVALID_AFTER_TEST,
-        AppConfig.PREF_AUTO_SORT_AFTER_TEST,
     )
 
     /**
@@ -39,7 +36,7 @@ object SettingsChangeManager {
     fun makeRestartService() {
         restartService.set(true)
     }
-    
+
     /**
      * Atomically consumes the restart flag.
      * @return true if a restart was requested, false otherwise.

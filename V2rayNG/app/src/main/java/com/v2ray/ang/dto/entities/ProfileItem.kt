@@ -60,6 +60,7 @@ data class ProfileItem(
     var obfsPassword: String? = null,
     var portHopping: String? = null,
     var portHoppingInterval: String? = null,
+    @Deprecated("Use pinnedCA256")
     var pinSHA256: String? = null,
     var bandwidthDown: String? = null,
     var bandwidthUp: String? = null,
@@ -67,6 +68,8 @@ data class ProfileItem(
     var policyGroupType: String? = null,
     var policyGroupSubscriptionId: String? = null,
     var policyGroupFilter: String? = null,
+    var policyGroupTestOutbounds: Boolean? = null,
+    var policyGroupFallbackTag: String? = null,
     var proxyChainProfiles: String? = null,
 
     var browserDialerMode: String? = null,

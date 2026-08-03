@@ -85,7 +85,7 @@ jobs:
         echo "Resolved release tag: ${RELEASE_TAG:-<empty>}"
 
     - name: Setup Java
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@v5.6.0
       with:
         distribution: 'temurin'
         java-version: '21'

@@ -39,8 +39,16 @@
     <string name="menu_item_import_config_manually_trojan">الكتابة يدويًا [Trojan]</string>
     <string name="menu_item_import_config_manually_wireguard">الكتابة يدويًا [Wireguard]</string>
     <string name="menu_item_import_config_manually_hysteria2">Type manually[Hysteria2]</string>
-    <string name="del_config_comfirm">تأكيد الحذف؟</string>
-    <string name="del_invalid_config_comfirm">Please test before deleting! Confirm delete ?</string>
+    <string name="confirm_delete_visible_profiles">هل أنت متأكد من أنك تريد حذف جميع ملفات التعريف المعروضة حاليًا؟</string>
+    <string name="confirm_delete_duplicate_profiles">هل أنت متأكد من أنك تريد حذف جميع ملفات التعريف المكررة المعروضة حاليًا؟</string>
+    <string name="confirm_delete_invalid_profiles">يرجى اختبار ملفات التعريف أولًا. هل أنت متأكد من أنك تريد حذف جميع ملفات التعريف غير الصالحة المعروضة حاليًا؟</string>
+    <string name="confirm_delete_profile">هل أنت متأكد من أنك تريد حذف ملف التعريف هذا؟</string>
+    <string name="confirm_delete_policy_group">هل أنت متأكد من أنك تريد حذف مجموعة السياسات هذه؟</string>
+    <string name="confirm_delete_proxy_chain_member">هل أنت متأكد من أنك تريد حذف هذا العضو من سلسلة الوكلاء؟</string>
+    <string name="confirm_delete_routing_rule">هل أنت متأكد من أنك تريد حذف قاعدة التوجيه هذه؟</string>
+    <string name="confirm_delete_subscription_group">هل أنت متأكد من أنك تريد حذف مجموعة الاشتراك هذه؟</string>
+    <string name="confirm_delete_asset_file">هل أنت متأكد من أنك تريد حذف ملف الأصول \"%1$s\"؟</string>
+    <string name="confirm_delete_asset_source">هل أنت متأكد من أنك تريد حذف مصدر الأصول هذا؟</string>
     <string name="server_lab_remarks">ملاحظات</string>
     <string name="server_lab_address">العنوان</string>
     <string name="server_lab_port">المنفذ</string>
@@ -243,8 +251,6 @@
     <string name="title_pref_confirm_remove">تأكيد حذف ملف التكوين</string>
     <string name="summary_pref_confirm_remove">ما إذا كان حذف ملف التكوين يتطلب تأكيدًا ثانيًا من قبل المستخدم</string>
 
-    <string name="title_pref_start_scan_immediate">بدء المسح الضوئي على الفور</string>
-    <string name="summary_pref_start_scan_immediate">افتح الكاميرا لمسح الرمز ضوئيًا على الفور عند بدء التشغيل، وإلا يمكنك اختيار مسح الرمز ضوئيًا أو تحديد صورة في شريط الأدوات</string>
 
     <string name="title_pref_append_http_proxy">Append HTTP Proxy to VPN</string>
     <string name="summary_pref_append_http_proxy">HTTP proxy will be used directly from (browser/ some supported apps), without going through the virtual NIC device (Android 10+)</string>
@@ -306,6 +312,7 @@
     <string name="sub_setting_pre_profile_tip">The configuration remarks exists and is unique</string>
     <string name="toast_invalid_update_interval">فاصل التحديث غير صالح. الحد الأدنى هو 15 دقيقة.</string>
     <string name="title_sub_update">تحديث الاشتراك (أول خطوة)</string>
+    <string name="title_ping_all_server">Tcping لجميع الإعدادات</string>
     <string name="title_real_ping_all_server"> اختبر جميع الإعدادات (3)</string>
     <string name="title_user_asset_setting">Asset files</string>
     <string name="title_sort_by_test_results">الفرز حسب نتائج الاختبار (5)</string>
@@ -348,7 +355,6 @@
     <string name="routing_settings_protocol">protocol</string>
     <string name="routing_settings_protocol_tip">[http,tls,bittorrent]</string>
     <string name="routing_settings_network">network</string>
-    <string name="routing_settings_network_tip">[udp|tcp]</string>
     <string name="routing_settings_outbound_tag">outboundTag</string>
 
     <string name="connection_test_pending">التحقق من الاتصال</string>
@@ -389,6 +395,8 @@
     <string name="title_policy_group_type">Policy group type</string>
     <string name="title_policy_group_subscription_id">From subscription group</string>
     <string name="title_policy_group_subscription_filter">Remarks regular filter</string>
+    <string name="title_policy_group_test_outbounds">اختبار المخارج</string>
+    <string name="title_policy_group_fallback">المخرج الاحتياطي (اختياري)</string>
     <string name="server_proxy_chain_members">اعضاء سلسلة الوكيل</string>
     <string name="server_proxy_chain_pick_members">اضغط هنا لاختيار عضو</string>
     <string name="server_proxy_chain_member_unselected">اختر عضوا</string>
@@ -408,19 +416,12 @@
     <string name="title_webdav_pass">Password</string>
     <string name="title_webdav_remote_path">Remote directory (optional)</string>
 
-    <string-array name="share_method">
-        <item>رمز استجابة سريعة (QRcode)</item>
-        <item>تصدير إلى الحافظة</item>
-        <item>تصدير التكوين الكامل إلى الحافظة</item>
-    </string-array>
-
-    <string-array name="share_method_more">
-        <item>QRcode</item>
-        <item>Export to clipboard</item>
-        <item>Export full configuration to clipboard</item>
-        <item>Edit</item>
-        <item>Delete</item>
-    </string-array>
+    <string name="share_method_qrcode">رمز استجابة سريعة (QRcode)</string>
+    <string name="share_method_clipboard">تصدير إلى الحافظة</string>
+    <string name="share_method_full_content">تصدير التكوين الكامل إلى الحافظة</string>
+    <string name="action_edit">تعديل</string>
+    <string name="action_delete">حذف</string>
+    <string name="action_close">إغلاق</string>
 
     <string-array name="share_sub_method">
         <item>رمز استجابة سريعة (QRcode)</item>
